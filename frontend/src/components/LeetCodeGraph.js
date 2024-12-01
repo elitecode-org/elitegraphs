@@ -492,7 +492,6 @@ const LeetCodeGraph = () => {
       </StatsContainer>
 
       <ControlsContainer>
-        <ControlsTitle>Graph Controls</ControlsTitle>
         <div>
           <label>Center Force</label>
           <TimelineSlider
