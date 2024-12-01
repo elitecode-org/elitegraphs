@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as d3 from "d3";
-import randomGraph from "../random_graph_value_1.json";
+import randomGraph from "../random_graph_with_timestamps.json";
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -13,30 +13,43 @@ const LeetCodeGraph = () => {
   const simulationRef = useRef(null);
   const data = randomGraph;
 
-  const getVisibleData = (progress) => {
-    const nodeCount = Math.max(1, Math.floor(data.nodes.length * progress));
-    const visibleNodes = data.nodes.slice(0, nodeCount);
-    const visibleNodeIds = new Set(visibleNodes.map(node => node.id));
+  const getVisibleData = useCallback((progress) => {
+    const dates = data.links.map(link => new Date(link.timestamp));
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+    
+    const totalTime = maxDate - minDate;
+    const cutoffDate = new Date(minDate.getTime() + (totalTime * progress));
+    
+    const visibleLinks = data.links.filter(link => 
+      new Date(link.timestamp) <= cutoffDate
+    );
+    
+    const visibleNodeIds = new Set();
+    visibleLinks.forEach(link => {
+      visibleNodeIds.add(typeof link.source === "object" ? link.source.id : link.source);
+      visibleNodeIds.add(typeof link.target === "object" ? link.target.id : link.target);
+    });
+    
+    const visibleNodes = data.nodes.filter(node => visibleNodeIds.has(node.id));
     
     visibleNodes.forEach(node => {
       node.connections = 0;
     });
     
-    const visibleLinks = data.links.filter(link => {
+    visibleLinks.forEach(link => {
       const sourceId = typeof link.source === "object" ? link.source.id : link.source;
       const targetId = typeof link.target === "object" ? link.target.id : link.target;
-      if (visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId)) {
-        const sourceNode = visibleNodes.find(n => n.id === sourceId);
-        const targetNode = visibleNodes.find(n => n.id === targetId);
-        if (sourceNode) sourceNode.connections = (sourceNode.connections || 0) + 1;
-        if (targetNode) targetNode.connections = (targetNode.connections || 0) + 1;
-        return true;
-      }
-      return false;
+      
+      const sourceNode = visibleNodes.find(n => n.id === sourceId);
+      const targetNode = visibleNodes.find(n => n.id === targetId);
+      
+      if (sourceNode) sourceNode.connections = (sourceNode.connections || 0) + 1;
+      if (targetNode) targetNode.connections = (targetNode.connections || 0) + 1;
     });
 
     return { nodes: visibleNodes, links: visibleLinks };
-  };
+  }, [data]);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -46,8 +59,8 @@ const LeetCodeGraph = () => {
 
     const visibleData = getVisibleData(timeProgress);
 
-    const width = 1000;
-    const height = 550;
+    const width = 1200;
+    const height = 650;
 
     const colorScale = d3
       .scaleOrdinal()
@@ -161,7 +174,7 @@ const LeetCodeGraph = () => {
         simulationRef.current.stop();
       }
     };
-  }, [centerForce, repelForce, linkForce, linkDistance, timeProgress]);
+  }, [centerForce, repelForce, linkForce, linkDistance, timeProgress, getVisibleData]);
 
   return (
     <div className="w-full max-w-lg mx-auto p-4 bg-[#ddd] text-gray-100">
