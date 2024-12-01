@@ -2,15 +2,24 @@ import styled from 'styled-components';
 
 export const ControlsContainer = styled.div`
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 24rem;
-  padding: 1.5rem;
-  background: #1E1E1E;
-  border-radius: 0.75rem;
-  backdrop-filter: blur(4px);
-  font-size: 0.875rem;
-  z-index: 50;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  z-index: 10;
+  width: 250px;
+
+  div {
+    margin-bottom: 10px;
+  }
+
+  label {
+    display: block;
+    color: #fff;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+  }
 `;
 
 export const ControlsTitle = styled.h3`
@@ -98,4 +107,13 @@ export const DifficultyItem = styled.div`
   color: ${props => props.color};
   font-size: 1.125rem;
   font-weight: 500;
+`;
+
+export const InstructionText = styled.div`
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  color: #666;
+  font-size: 0.8rem;
+  pointer-events: none;
 `;

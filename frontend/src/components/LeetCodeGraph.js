@@ -19,6 +19,17 @@ import {
   DifficultyStats,
   DifficultyItem,
 } from "./LeetCodeGraph.styles";
+import { debounce } from 'lodash';
+import styled from 'styled-components';
+
+const InstructionText = styled.div`
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  color: #666;
+  font-size: 0.8rem;
+  pointer-events: none;
+`;
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -160,6 +171,80 @@ const LeetCodeGraph = () => {
     [data]
   );
 
+  const transitionRef = useRef(null);
+  const targetValuesRef = useRef({
+    centerForce: 0.5,
+    repelForce: 0.5,
+    linkForce: 0.8,
+    linkDistance: 0.5
+  });
+
+  const updateForces = useCallback(() => {
+    if (!simulationRef.current) return;
+
+    const simulation = simulationRef.current;
+    const target = targetValuesRef.current;
+    let changed = false;
+
+    ['centerForce', 'repelForce', 'linkForce', 'linkDistance'].forEach(param => {
+      const current = simulation.force('center').strength();
+      const diff = target[param] - current;
+      if (Math.abs(diff) > 0.001) {
+        changed = true;
+        const newValue = current + diff * 0.1;
+        
+        switch(param) {
+          case 'centerForce':
+            simulation.force('center').strength(newValue);
+            break;
+          case 'repelForce':
+            simulation.force('charge').strength(-newValue * 400);
+            break;
+          case 'linkForce':
+            simulation.force('link').strength(newValue);
+            break;
+          case 'linkDistance':
+            simulation.force('link').distance(newValue * 100);
+            break;
+        }
+      }
+    });
+
+    if (changed) {
+      simulation.alpha(0.3).restart();
+      transitionRef.current = requestAnimationFrame(updateForces);
+    } else {
+      transitionRef.current = null;
+    }
+  }, []);
+
+  const handleForceChange = useMemo(() => ({
+    centerForce: debounce((value) => {
+      targetValuesRef.current.centerForce = value;
+      if (!transitionRef.current) {
+        transitionRef.current = requestAnimationFrame(updateForces);
+      }
+    }, 16),
+    repelForce: debounce((value) => {
+      targetValuesRef.current.repelForce = value;
+      if (!transitionRef.current) {
+        transitionRef.current = requestAnimationFrame(updateForces);
+      }
+    }, 16),
+    linkForce: debounce((value) => {
+      targetValuesRef.current.linkForce = value;
+      if (!transitionRef.current) {
+        transitionRef.current = requestAnimationFrame(updateForces);
+      }
+    }, 16),
+    linkDistance: debounce((value) => {
+      targetValuesRef.current.linkDistance = value;
+      if (!transitionRef.current) {
+        transitionRef.current = requestAnimationFrame(updateForces);
+      }
+    }, 16),
+  }), [updateForces]);
+
   useEffect(() => {
     if (!svgRef.current) return;
 
@@ -184,7 +269,7 @@ const LeetCodeGraph = () => {
     const sizeScale = d3
       .scaleLinear()
       .domain([0, Math.max(1, maxConnections)])
-      .range([1, 50]);
+      .range([1, 70]);
 
     // Create the SVG container
     const svg = d3
@@ -232,10 +317,7 @@ const LeetCodeGraph = () => {
           .distanceMin(1)
           .distanceMax(width / 2)
       )
-      .force(
-        "center",
-        d3.forceCenter(0, 0).strength(centerForce)
-      )
+      .force("center", d3.forceCenter(0, 0).strength(centerForce))
       .force(
         "collision",
         d3
@@ -301,8 +383,19 @@ const LeetCodeGraph = () => {
         (d) =>
           `${d.name}\nConnections: ${d.connections}\nCategories: ${
             d.categories ? d.categories.join(", ") : d.category
-          }`
+          }\nCmd/Ctrl + Click to open problem`
       );
+
+    nodeGroups
+      .on("click", (event, d) => {
+        // Check if command (Mac) or ctrl (Windows) key is pressed
+        if (event.metaKey || event.ctrlKey) {
+          event.preventDefault();
+          const url = getLeetCodeUrl(d.name);
+          window.open(url, '_blank');
+        }
+      })
+      .style("cursor", "pointer");  // Change cursor to pointer to indicate clickable
 
     simulationRef.current.tick(30);
 
@@ -316,7 +409,7 @@ const LeetCodeGraph = () => {
             .attr("y2", (d) => d.target.y);
 
           nodeGroups.attr("transform", (d) => `translate(${d.x},${d.y})`);
-          
+
           simulationRef.current.tickRequest = null;
         });
       }
@@ -347,6 +440,9 @@ const LeetCodeGraph = () => {
           cancelAnimationFrame(simulationRef.current.tickRequest);
         }
       }
+      if (transitionRef.current) {
+        cancelAnimationFrame(transitionRef.current);
+      }
     };
   }, [
     centerForce,
@@ -358,37 +454,126 @@ const LeetCodeGraph = () => {
     categoryColors,
   ]);
 
+  // Extract user stats from the data
+  const userStats = useMemo(() => ({
+    username: data.user?.username || "yangsteven",
+    total: data.user?.total_problems_completed || 0,
+    easy: data.user?.easy_questions || 0,
+    medium: data.user?.medium_questions || 0,
+    hard: data.user?.hard_questions || 0
+  }), [data]);
+
+  // Update the getLeetCodeUrl function
+  const getLeetCodeUrl = (problemName) => {
+    // Convert problem name to leetcode URL format
+    // e.g. "Number of Squareful Arrays" -> "number-of-squareful-arrays"
+    const urlName = problemName
+      .toLowerCase()
+      // First replace spaces with dashes
+      .replace(/\s+/g, '-')
+      // Then remove any remaining special characters
+      .replace(/[^a-zA-Z0-9-]/g, '');
+    return `https://leetcode.com/problems/${urlName}/description/`;
+  };
+
   return (
     <div className="relative w-full h-[800px]">
       <StatsContainer>
-        <Username>yangsteven</Username>
+        <Username>{userStats.username}</Username>
         <StatsRow>
-          <StatValue>100</StatValue>
+          <StatValue>{userStats.total}</StatValue>
           <StatLabel>solved</StatLabel>
         </StatsRow>
         <DifficultyStats>
-          <DifficultyItem color="#00B8A3">40</DifficultyItem>
-          <DifficultyItem color="#FFC01E">35</DifficultyItem>
-          <DifficultyItem color="#FF375F">25</DifficultyItem>
+          <DifficultyItem color="#00B8A3">{userStats.easy}</DifficultyItem>
+          <DifficultyItem color="#FFC01E">{userStats.medium}</DifficultyItem>
+          <DifficultyItem color="#FF375F">{userStats.hard}</DifficultyItem>
         </DifficultyStats>
       </StatsContainer>
 
       <ControlsContainer>
-        <ControlsTitle>Timeline Progress</ControlsTitle>
-        <TimelineSlider
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={timeProgress}
-          onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
-        />
+        <ControlsTitle>Graph Controls</ControlsTitle>
+        <div>
+          <label>Center Force</label>
+          <TimelineSlider
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={centerForce}
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              setCenterForce(value);
+              handleForceChange.centerForce(value);
+            }}
+          />
+        </div>
+        <div>
+          <label>Repel Force</label>
+          <TimelineSlider
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={repelForce}
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              setRepelForce(value);
+              handleForceChange.repelForce(value);
+            }}
+          />
+        </div>
+        <div>
+          <label>Link Force</label>
+          <TimelineSlider
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={linkForce}
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              setLinkForce(value);
+              handleForceChange.linkForce(value);
+            }}
+          />
+        </div>
+        <div>
+          <label>Link Distance</label>
+          <TimelineSlider
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={linkDistance}
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              setLinkDistance(value);
+              handleForceChange.linkDistance(value);
+            }}
+          />
+        </div>
+        <div>
+          <label>Timeline Progress</label>
+          <TimelineSlider
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={timeProgress}
+            onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
+          />
+        </div>
       </ControlsContainer>
 
       <svg
         ref={svgRef}
         className="absolute inset-0 w-full h-full bg-gray-900 shadow-lg cursor-move rounded-lg"
       />
+      
+      <InstructionText>
+        ⌘/Ctrl + Click to open problem
+      </InstructionText>
     </div>
   );
 };
