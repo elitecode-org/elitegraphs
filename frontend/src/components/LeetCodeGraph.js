@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import * as d3 from "d3";
-import randomGraph from "../final_data3.json";
+import randomGraph from "../final_data4.json";
 import {
   ControlsContainer,
   ControlsTitle,
@@ -179,12 +179,12 @@ const LeetCodeGraph = () => {
     };
 
     const maxConnections = Math.max(
-      ...visibleData.nodes.map((node) => node.connections)
+      ...visibleData.nodes.map((node) => node.connections || 0)
     );
     const sizeScale = d3
       .scaleLinear()
-      .domain([0, maxConnections])
-      .range([1, 200]);
+      .domain([0, Math.max(1, maxConnections)])
+      .range([1, 50]);
 
     // Create the SVG container
     const svg = d3
@@ -242,7 +242,7 @@ const LeetCodeGraph = () => {
       .attr("stroke-opacity", 0.4)
       .attr("stroke-width", 1);
 
-    const nodes = g
+    const nodeGroups = g
       .append("g")
       .selectAll("g")
       .data(visibleData.nodes)
@@ -255,21 +255,32 @@ const LeetCodeGraph = () => {
           .on("end", dragended)
       );
 
-    nodes
+    nodeGroups
       .append("circle")
-      .attr("r", (d) => sizeScale(d.connections))
+      .attr("r", (d) => sizeScale(d.connections || 0))
       .attr("fill", (d) => getNodeColor(d))
       .attr("stroke-width", 0);
 
-    nodes
+    const nodeTexts = nodeGroups
       .append("text")
-      .text((d) => d.name)
-      .attr("x", (d) => sizeScale(d.connections) + 2)
+      .text((d) => (d.connections >= 100 ? d.name : ""))
+      .attr("x", (d) => sizeScale(d.connections || 0) + 2)
       .attr("y", 3)
       .attr("font-size", "5px")
       .attr("fill", "#ddd");
 
-    nodes
+    // Add hover functionality
+    nodeGroups
+      .on("mouseover", function (event, d) {
+        d3.select(this).select("text").text(d.name);
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this)
+          .select("text")
+          .text(d.connections >= 100 ? d.name : "");
+      });
+
+    nodeGroups
       .append("title")
       .text(
         (d) =>
@@ -285,7 +296,7 @@ const LeetCodeGraph = () => {
         .attr("x2", (d) => d.target.x)
         .attr("y2", (d) => d.target.y);
 
-      nodes.attr("transform", (d) => `translate(${d.x},${d.y})`);
+      nodeGroups.attr("transform", (d) => `translate(${d.x},${d.y})`);
     });
 
     function dragstarted(event, d) {
