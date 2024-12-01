@@ -7,6 +7,56 @@ import React, {
 } from "react";
 import * as d3 from "d3";
 import randomGraph from "../data.json";
+import styled from 'styled-components';
+
+const ControlsContainer = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 24rem;
+  padding: 1.5rem;
+  background: #1E1E1E;
+  border-radius: 0.75rem;
+  backdrop-filter: blur(4px);
+  font-size: 0.875rem;
+  z-index: 50;
+`;
+
+const ControlsTitle = styled.h3`
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+`;
+
+const TimelineSlider = styled.input`
+  width: 100%;
+  height: 0.5rem;
+  background: #374151;
+  border-radius: 0.5rem;
+  appearance: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: white;
+    border-radius: 9999px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  }
+
+  &::-moz-range-thumb {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: white;
+    border: none;
+    border-radius: 9999px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  }
+`;
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -15,7 +65,7 @@ const LeetCodeGraph = () => {
   const [linkForce, setLinkForce] = useState(0.8);
   const [linkDistance, setLinkDistance] = useState(0.5);
   const [timeProgress, setTimeProgress] = useState(0);
-
+  
   const simulationRef = useRef(null);
   const data = randomGraph;
 
@@ -145,7 +195,9 @@ const LeetCodeGraph = () => {
     const height = 650;
 
     const getNodeColor = (node) => {
-      const firstCategory = node.categories ? node.categories[0] : node.category;
+      const firstCategory = node.categories
+        ? node.categories[0]
+        : node.category;
       return categoryColors[firstCategory] || "#808080";
     };
 
@@ -167,14 +219,15 @@ const LeetCodeGraph = () => {
     const g = svg.append("g");
 
     // Add zoom behavior
-    const zoom = d3.zoom()
+    const zoom = d3
+      .zoom()
       .scaleExtent([0.1, 4]) // Set min and max zoom scale
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
       });
 
     svg.call(zoom);
-    
+
     // Center the initial view
     const initialTransform = d3.zoomIdentity
       .translate(width / 2, height / 2)
@@ -218,8 +271,7 @@ const LeetCodeGraph = () => {
       .data(visibleData.nodes)
       .join("g")
       .call(
-        d3
-          .drag()
+        d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
           .on("end", dragended)
@@ -241,11 +293,10 @@ const LeetCodeGraph = () => {
 
     nodes
       .append("title")
-      .text(
-        (d) =>
-          `${d.id}\nConnections: ${d.connections}\nCategories: ${
-            d.categories ? d.categories.join(", ") : d.category
-          }`
+      .text((d) =>
+        `${d.id}\nConnections: ${d.connections}\nCategories: ${
+          d.categories ? d.categories.join(", ") : d.category
+        }`
       );
 
     simulationRef.current.on("tick", () => {
@@ -275,6 +326,7 @@ const LeetCodeGraph = () => {
       d.fy = null;
     }
 
+    // Clean up the timeout when component updates
     return () => {
       if (simulationRef.current) {
         simulationRef.current.stop();
@@ -287,81 +339,27 @@ const LeetCodeGraph = () => {
     linkDistance,
     timeProgress,
     getVisibleData,
-    categoryColors,
+    categoryColors
   ]);
 
   return (
     <div className="relative w-full h-[800px]">
-      <svg 
-        ref={svgRef} 
+      <ControlsContainer>
+        <ControlsTitle>Timeline Progress</ControlsTitle>
+        <TimelineSlider
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={timeProgress}
+          onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
+        />
+      </ControlsContainer>
+
+      <svg
+        ref={svgRef}
         className="absolute inset-0 w-full h-full bg-gray-900 shadow-lg cursor-move rounded-lg"
       />
-
-      <div className="absolute top-4 right-4 w-64 p-4 bg-gray-800/90 rounded-lg backdrop-blur-sm text-sm z-50">
-        <h3 className="text-white font-semibold mb-3">Graph Controls</h3>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-gray-200 text-xs mb-1">Center force</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={centerForce}
-              onChange={(e) => setCenterForce(parseFloat(e.target.value))}
-              className="w-full accent-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-200 text-xs mb-1">Repel force</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={repelForce}
-              onChange={(e) => setRepelForce(parseFloat(e.target.value))}
-              className="w-full accent-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-200 text-xs mb-1">Link force</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={linkForce}
-              onChange={(e) => setLinkForce(parseFloat(e.target.value))}
-              className="w-full accent-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-200 text-xs mb-1">Link distance</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={linkDistance}
-              onChange={(e) => setLinkDistance(parseFloat(e.target.value))}
-              className="w-full accent-blue-500"
-            />
-          </div>
-          <div className="pt-3 border-t border-gray-700">
-            <label className="block text-gray-200 text-xs mb-1">Timeline Progress</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={timeProgress}
-              onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
-              className="w-full accent-blue-500"
-            />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
