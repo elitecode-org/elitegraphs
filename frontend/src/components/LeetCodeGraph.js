@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as d3 from "d3";
-import randomGraph from "../random_graph_with_timestamps.json";
+import randomGraph from "../random_graph_with_only_categories.json";
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -9,47 +9,122 @@ const LeetCodeGraph = () => {
   const [linkForce, setLinkForce] = useState(0.8);
   const [linkDistance, setLinkDistance] = useState(0.5);
   const [timeProgress, setTimeProgress] = useState(0);
-  
+
   const simulationRef = useRef(null);
   const data = randomGraph;
 
-  const getVisibleData = useCallback((progress) => {
-    const dates = data.links.map(link => new Date(link.timestamp));
-    const minDate = new Date(Math.min(...dates));
-    const maxDate = new Date(Math.max(...dates));
-    
-    const totalTime = maxDate - minDate;
-    const cutoffDate = new Date(minDate.getTime() + (totalTime * progress));
-    
-    const visibleLinks = data.links.filter(link => 
-      new Date(link.timestamp) <= cutoffDate
-    );
-    
-    const visibleNodeIds = new Set();
-    visibleLinks.forEach(link => {
-      visibleNodeIds.add(typeof link.source === "object" ? link.source.id : link.source);
-      visibleNodeIds.add(typeof link.target === "object" ? link.target.id : link.target);
-    });
-    
-    const visibleNodes = data.nodes.filter(node => visibleNodeIds.has(node.id));
-    
-    visibleNodes.forEach(node => {
-      node.connections = 0;
-    });
-    
-    visibleLinks.forEach(link => {
-      const sourceId = typeof link.source === "object" ? link.source.id : link.source;
-      const targetId = typeof link.target === "object" ? link.target.id : link.target;
-      
-      const sourceNode = visibleNodes.find(n => n.id === sourceId);
-      const targetNode = visibleNodes.find(n => n.id === targetId);
-      
-      if (sourceNode) sourceNode.connections = (sourceNode.connections || 0) + 1;
-      if (targetNode) targetNode.connections = (targetNode.connections || 0) + 1;
-    });
+  const getVisibleData = useCallback(
+    (progress) => {
+      const dates = data.links.map((link) => new Date(link.timestamp));
+      const minDate = new Date(Math.min(...dates));
+      const maxDate = new Date(Math.max(...dates));
 
-    return { nodes: visibleNodes, links: visibleLinks };
-  }, [data]);
+      const totalTime = maxDate - minDate;
+      const cutoffDate = new Date(minDate.getTime() + totalTime * progress);
+
+      const visibleLinks = data.links.filter(
+        (link) => new Date(link.timestamp) <= cutoffDate
+      );
+
+      const visibleNodeIds = new Set();
+      visibleLinks.forEach((link) => {
+        visibleNodeIds.add(
+          typeof link.source === "object" ? link.source.id : link.source
+        );
+        visibleNodeIds.add(
+          typeof link.target === "object" ? link.target.id : link.target
+        );
+      });
+
+      const visibleNodes = data.nodes.filter((node) =>
+        visibleNodeIds.has(node.id)
+      );
+
+      visibleNodes.forEach((node) => {
+        node.connections = 0;
+      });
+
+      visibleLinks.forEach((link) => {
+        const sourceId =
+          typeof link.source === "object" ? link.source.id : link.source;
+        const targetId =
+          typeof link.target === "object" ? link.target.id : link.target;
+
+        const sourceNode = visibleNodes.find((n) => n.id === sourceId);
+        const targetNode = visibleNodes.find((n) => n.id === targetId);
+
+        if (sourceNode)
+          sourceNode.connections = (sourceNode.connections || 0) + 1;
+        if (targetNode)
+          targetNode.connections = (targetNode.connections || 0) + 1;
+      });
+
+      return { nodes: visibleNodes, links: visibleLinks };
+    },
+    [data]
+  );
+
+  // Define color mapping for all categories
+  const categoryColors = {
+    // Basic Categories
+    Array: "#4f9fff",
+    String: "#92d2a5",
+    Tree: "#ffd280",
+    "Linked List": "#a5a6f6",
+    Graph: "#f4a4c0",
+    Stack: "#ff9e9e",
+    Queue: "#9ef1ff",
+    "Hash Table": "#ffc4e6",
+    "Binary Search": "#c9b1ff",
+    "Dynamic Programming": "#ffb347",
+
+    // Advanced Categories
+    Sorting: "#ff7f7f",
+    Greedy: "#7fbfff",
+    Backtracking: "#98fb98",
+    "Bit Manipulation": "#dda0dd",
+    Math: "#ffdab9",
+    Database: "#87cefa",
+    Matrix: "#f08080",
+    "Breadth-First Search": "#98fb98",
+    "Depth-First Search": "#deb887",
+    "Two Pointers": "#b0c4de",
+    "Union Find": "#f0e68c",
+    Trie: "#e6e6fa",
+    "Divide and Conquer": "#ffa07a",
+    "Sliding Window": "#87ceeb",
+    "Topological Sort": "#dda0dd",
+    "Shortest Path": "#90ee90",
+    Geometry: "#ffb6c1",
+    "Probability and Statistics": "#add8e6",
+    "Game Theory": "#f0fff0",
+    "Number Theory": "#ffe4e1",
+    Combinatorics: "#e0ffff",
+    Interactive: "#fafad2",
+    Memoization: "#d8bfd8",
+    "Monotonic Stack": "#afeeee",
+    "Segment Tree": "#db7093",
+    "Rolling Hash": "#f5deb3",
+    "Minimum Spanning Tree": "#bc8f8f",
+    "Counting Sort": "#b8860b",
+    "Radix Sort": "#bdb76b",
+    Shell: "#8fbc8f",
+    "Strongly Connected Component": "#cd853f",
+    "Reservoir Sampling": "#daa520",
+    "Eulerian Circuit": "#808000",
+    Bitmask: "#4682b4",
+    "Rejection Sampling": "#483d8b",
+    "Doubly-Linked List": "#008b8b",
+    "Data Stream": "#556b2f",
+    "Biconnected Component": "#8b008b",
+    "Monotonic Queue": "#2f4f4f",
+    "Prefix Sum": "#800000",
+    "Brain Teaser": "#8b4513",
+    Randomized: "#808080",
+    "Hash Function": "#4b0082",
+    Concurrency: "#800080",
+    Recursion: "#008080",
+  };
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -62,13 +137,18 @@ const LeetCodeGraph = () => {
     const width = 1200;
     const height = 650;
 
-    const colorScale = d3
-      .scaleOrdinal()
-      .domain(["Array", "Linked List", "String", "Tree", "Stack"])
-      .range(["#4f9fff", "#92d2a5", "#ffd280", "#a5a6f6", "#f4a4c0"]);
+    // Modified to use first category from the array
+    const getNodeColor = (node) => {
+      const firstCategory = node.categories
+        ? node.categories[0]
+        : node.category;
+      return categoryColors[firstCategory] || "#808080"; // Default gray if category not found
+    };
 
     // Create size scale based on connection count
-    const maxConnections = Math.max(...visibleData.nodes.map(node => node.connections));
+    const maxConnections = Math.max(
+      ...visibleData.nodes.map((node) => node.connections)
+    );
     const sizeScale = d3
       .scaleLinear()
       .domain([0, maxConnections])
@@ -125,7 +205,7 @@ const LeetCodeGraph = () => {
     nodes
       .append("circle")
       .attr("r", (d) => sizeScale(d.connections))
-      .attr("fill", (d) => colorScale(d.category))
+      .attr("fill", (d) => getNodeColor(d))
       .attr("stroke-width", 0);
 
     nodes
@@ -139,7 +219,10 @@ const LeetCodeGraph = () => {
     nodes
       .append("title")
       .text(
-        (d) => `${d.id}\nConnections: ${d.connections}\nCategory: ${d.category}`
+        (d) =>
+          `${d.id}\nConnections: ${d.connections}\nCategories: ${
+            d.categories ? d.categories.join(", ") : d.category
+          }`
       );
 
     simulationRef.current.on("tick", () => {
@@ -174,7 +257,14 @@ const LeetCodeGraph = () => {
         simulationRef.current.stop();
       }
     };
-  }, [centerForce, repelForce, linkForce, linkDistance, timeProgress, getVisibleData]);
+  }, [
+    centerForce,
+    repelForce,
+    linkForce,
+    linkDistance,
+    timeProgress,
+    getVisibleData,
+  ]);
 
   return (
     <div className="w-full max-w-lg mx-auto p-4 bg-[#ddd] text-gray-100">
