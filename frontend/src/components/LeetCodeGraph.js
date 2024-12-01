@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import * as d3 from "d3";
-import randomGraph from "../data.json";
+import randomGraph from "../final_data3.json";
 import {
   ControlsContainer,
   ControlsTitle,
@@ -90,6 +90,21 @@ const LeetCodeGraph = () => {
       "Hash Function": "#4b0082",
       Concurrency: "#800080",
       Recursion: "#008080",
+      "Binary Tree": "#98fb98",
+      "Binary Search Tree": "#dda0dd",
+      "Binary Indexed Tree": "#b8860b",
+      "Bucket Sort": "#cd853f",
+      Counting: "#4682b4",
+      Design: "#556b2f",
+      Enumeration: "#8b008b",
+      "Line Sweep": "#2f4f4f",
+      "Heap (Priority Queue)": "#800000",
+      Iterator: "#8b4513",
+      "Ordered Set": "#4b0082",
+      Quickselect: "#800080",
+      Simulation: "#008080",
+      "String Matching": "#98fb98",
+      "Suffix Array": "#dda0dd",
     }),
     []
   );
@@ -169,7 +184,7 @@ const LeetCodeGraph = () => {
     const sizeScale = d3
       .scaleLinear()
       .domain([0, maxConnections])
-      .range([1, 12]);
+      .range([1, 200]);
 
     // Create the SVG container
     const svg = d3
@@ -248,7 +263,7 @@ const LeetCodeGraph = () => {
 
     nodes
       .append("text")
-      .text((d) => d.id)
+      .text((d) => d.name)
       .attr("x", (d) => sizeScale(d.connections) + 2)
       .attr("y", 3)
       .attr("font-size", "5px")
@@ -258,7 +273,7 @@ const LeetCodeGraph = () => {
       .append("title")
       .text(
         (d) =>
-          `${d.id}\nConnections: ${d.connections}\nCategories: ${
+          `${d.name}\nConnections: ${d.connections}\nCategories: ${
             d.categories ? d.categories.join(", ") : d.category
           }`
       );
