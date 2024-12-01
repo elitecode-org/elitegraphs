@@ -61,8 +61,8 @@ const LeetCodeGraph = () => {
       node.connections = connectionCount[node.id];
     });
 
-    const width = 800;
-    const height = 500;
+    const width = 1000;
+    const height = 550;
 
     const colorScale = d3
       .scaleOrdinal()
@@ -107,9 +107,9 @@ const LeetCodeGraph = () => {
       .selectAll("line")
       .data(data.links)
       .join("line")
-      .attr("stroke", "#666")
-      .attr("stroke-opacity", 0.2)
-      .attr("stroke-width", 0.5);
+      .attr("stroke", "#999")
+      .attr("stroke-opacity", 0.4)
+      .attr("stroke-width", 1);
 
     const nodes = svg
       .append("g")
@@ -128,8 +128,7 @@ const LeetCodeGraph = () => {
       .append("circle")
       .attr("r", (d) => sizeScale(d.connections))
       .attr("fill", (d) => colorScale(d.category))
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1);
+      .attr("stroke-width", 0);
 
     nodes
       .append("text")
@@ -137,7 +136,7 @@ const LeetCodeGraph = () => {
       .attr("x", (d) => sizeScale(d.connections) + 2)
       .attr("y", 3)
       .attr("font-size", "8px")
-      .attr("fill", "#e5e5e5");
+      .attr("fill", "#fff");
 
     nodes
       .append("title")
@@ -179,79 +178,58 @@ const LeetCodeGraph = () => {
 
   return (
     <div className="w-full max-w-lg mx-auto p-4 bg-[#ddd] text-gray-100">
-      <svg ref={svgRef} className="w-full h-[600px] shadow-lg" />
+      <div className="relative">
+        <svg ref={svgRef} className="w-full h-[600px] shadow-lg" />
 
-      <div className="mt-4 space-y-2 text-sm">
-        <div>
-          <label className="block text-gray-300">Center force</label>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={centerForce}
-            onChange={(e) => setCenterForce(parseFloat(e.target.value))}
-            className="w-full accent-gray-400"
-          />
-        </div>
-        <div>
-          <label className="block text-gray-300">Repel force</label>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={repelForce}
-            onChange={(e) => setRepelForce(parseFloat(e.target.value))}
-            className="w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-gray-300">Link force</label>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={linkForce}
-            onChange={(e) => setLinkForce(parseFloat(e.target.value))}
-            className="w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-gray-300">Link distance</label>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={linkDistance}
-            onChange={(e) => setLinkDistance(parseFloat(e.target.value))}
-            className="w-full"
-          />
-        </div>
-      </div>
-
-      <div className="mt-4 flex gap-4 justify-center text-xs text-gray-300">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#4f9fff]"></span>
-          <span>Array</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#92d2a5]"></span>
-          <span>Linked List</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#ffd280]"></span>
-          <span>String</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#a5a6f6]"></span>
-          <span>Tree</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#f4a4c0]"></span>
-          <span>Stack</span>
+        <div className="absolute top-4 left-4 right-4 max-w-[300px] p-4 bg-gray-800/90 rounded-lg backdrop-blur-sm space-y-2 text-sm z-50 text-gray-200">
+          <div>
+            <label className="block !text-white">Center force</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={centerForce}
+              onChange={(e) => setCenterForce(parseFloat(e.target.value))}
+              className="w-full accent-white"
+            />
+          </div>
+          <div>
+            <label className="block !text-white">Repel force</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={repelForce}
+              onChange={(e) => setRepelForce(parseFloat(e.target.value))}
+              className="w-full accent-white"
+            />
+          </div>
+          <div>
+            <label className="block !text-white">Link force</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={linkForce}
+              onChange={(e) => setLinkForce(parseFloat(e.target.value))}
+              className="w-full accent-white"
+            />
+          </div>
+          <div>
+            <label className="block !text-white">Link distance</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={linkDistance}
+              onChange={(e) => setLinkDistance(parseFloat(e.target.value))}
+              className="w-full accent-white"
+            />
+          </div>
         </div>
       </div>
     </div>
