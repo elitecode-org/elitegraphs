@@ -8,30 +8,35 @@ const LeetCodeGraph = () => {
   const [repelForce, setRepelForce] = useState(0.5);
   const [linkForce, setLinkForce] = useState(0.8);
   const [linkDistance, setLinkDistance] = useState(0.5);
-
-  // const data = {
-  //   nodes: [
-  //     { id: "Two Sum", difficulty: "Easy", category: "Array" },
-  //     { id: "Add Two Numbers", difficulty: "Medium", category: "Linked List" },
-  //     { id: "Longest Substring", difficulty: "Medium", category: "String" },
-  //     { id: "Median Arrays", difficulty: "Hard", category: "Array" },
-  //     { id: "Binary Tree Inorder", difficulty: "Easy", category: "Tree" },
-  //     { id: "Valid Parentheses", difficulty: "Easy", category: "Stack" },
-  //   ],
-  //   links: [
-  //     { source: "Two Sum", target: "Add Two Numbers", value: 1 },
-  //     { source: "Add Two Numbers", target: "Median Arrays", value: 1 },
-  //     { source: "Longest Substring", target: "Median Arrays", value: 1 },
-  //     { source: "Binary Tree Inorder", target: "Median Arrays", value: 1 },
-  //     { source: "Valid Parentheses", target: "Median Arrays", value: 1 },
-  //     { source: "Two Sum", target: "Median Arrays", value: 1 },
-  //     { source: "Two Sum", target: "Median Arrays", value: 1 },
-  //     { source: "Two Sum", target: "Median Arrays", value: 1 },
-  //     { source: "Add Two Numbers", target: "Longest Substring", value: 1 },
-  //     { source: "Binary Tree Inorder", target: "Valid Parentheses", value: 1 },
-  //   ],
-  // };
+  const [timeProgress, setTimeProgress] = useState(0);
+  
+  const simulationRef = useRef(null);
   const data = randomGraph;
+
+  const getVisibleData = (progress) => {
+    const nodeCount = Math.max(1, Math.floor(data.nodes.length * progress));
+    const visibleNodes = data.nodes.slice(0, nodeCount);
+    const visibleNodeIds = new Set(visibleNodes.map(node => node.id));
+    
+    visibleNodes.forEach(node => {
+      node.connections = 0;
+    });
+    
+    const visibleLinks = data.links.filter(link => {
+      const sourceId = typeof link.source === "object" ? link.source.id : link.source;
+      const targetId = typeof link.target === "object" ? link.target.id : link.target;
+      if (visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId)) {
+        const sourceNode = visibleNodes.find(n => n.id === sourceId);
+        const targetNode = visibleNodes.find(n => n.id === targetId);
+        if (sourceNode) sourceNode.connections = (sourceNode.connections || 0) + 1;
+        if (targetNode) targetNode.connections = (targetNode.connections || 0) + 1;
+        return true;
+      }
+      return false;
+    });
+
+    return { nodes: visibleNodes, links: visibleLinks };
+  };
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -39,27 +44,7 @@ const LeetCodeGraph = () => {
     // Clear any existing SVG content
     d3.select(svgRef.current).selectAll("*").remove();
 
-    // Calculate connection count for each node
-    const connectionCount = {};
-    data.nodes.forEach((node) => {
-      connectionCount[node.id] = 0;
-    });
-
-    data.links.forEach((link) => {
-      // Handle both string and object source/target
-      const sourceId =
-        typeof link.source === "object" ? link.source.id : link.source;
-      const targetId =
-        typeof link.target === "object" ? link.target.id : link.target;
-
-      connectionCount[sourceId] = (connectionCount[sourceId] || 0) + 1;
-      connectionCount[targetId] = (connectionCount[targetId] || 0) + 1;
-    });
-
-    // Add connection count to node data
-    data.nodes.forEach((node) => {
-      node.connections = connectionCount[node.id];
-    });
+    const visibleData = getVisibleData(timeProgress);
 
     const width = 1000;
     const height = 550;
@@ -70,7 +55,7 @@ const LeetCodeGraph = () => {
       .range(["#4f9fff", "#92d2a5", "#ffd280", "#a5a6f6", "#f4a4c0"]);
 
     // Create size scale based on connection count
-    const maxConnections = Math.max(...Object.values(connectionCount));
+    const maxConnections = Math.max(...visibleData.nodes.map(node => node.connections));
     const sizeScale = d3
       .scaleLinear()
       .domain([0, maxConnections])
@@ -81,12 +66,12 @@ const LeetCodeGraph = () => {
       .attr("viewBox", `0 0 ${width} ${height}`)
       .attr("class", "bg-gray-50 rounded-lg");
 
-    const simulation = d3
-      .forceSimulation(data.nodes)
+    simulationRef.current = d3
+      .forceSimulation(visibleData.nodes)
       .force(
         "link",
         d3
-          .forceLink(data.links)
+          .forceLink(visibleData.links)
           .id((d) => d.id)
           .distance(linkDistance * 100)
       )
@@ -100,21 +85,21 @@ const LeetCodeGraph = () => {
         d3.forceCollide().radius((d) => sizeScale(d.connections) + 5)
       );
 
-    simulation.force("link").strength(linkForce);
+    simulationRef.current.force("link").strength(linkForce);
 
     const links = svg
       .append("g")
       .selectAll("line")
-      .data(data.links)
+      .data(visibleData.links)
       .join("line")
-      .attr("stroke", "#999")
+      .attr("stroke", "#636363")
       .attr("stroke-opacity", 0.4)
       .attr("stroke-width", 1);
 
     const nodes = svg
       .append("g")
       .selectAll("g")
-      .data(data.nodes)
+      .data(visibleData.nodes)
       .join("g")
       .call(
         d3
@@ -135,8 +120,8 @@ const LeetCodeGraph = () => {
       .text((d) => d.id)
       .attr("x", (d) => sizeScale(d.connections) + 2)
       .attr("y", 3)
-      .attr("font-size", "8px")
-      .attr("fill", "#fff");
+      .attr("font-size", "5px")
+      .attr("fill", "#ddd");
 
     nodes
       .append("title")
@@ -144,7 +129,7 @@ const LeetCodeGraph = () => {
         (d) => `${d.id}\nConnections: ${d.connections}\nCategory: ${d.category}`
       );
 
-    simulation.on("tick", () => {
+    simulationRef.current.on("tick", () => {
       links
         .attr("x1", (d) => d.source.x)
         .attr("y1", (d) => d.source.y)
@@ -155,7 +140,7 @@ const LeetCodeGraph = () => {
     });
 
     function dragstarted(event) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
+      if (!event.active) simulationRef.current.alphaTarget(0.3).restart();
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
     }
@@ -166,15 +151,17 @@ const LeetCodeGraph = () => {
     }
 
     function dragended(event) {
-      if (!event.active) simulation.alphaTarget(0);
+      if (!event.active) simulationRef.current.alphaTarget(0);
       event.subject.fx = null;
       event.subject.fy = null;
     }
 
     return () => {
-      simulation.stop();
+      if (simulationRef.current) {
+        simulationRef.current.stop();
+      }
     };
-  }, [centerForce, repelForce, linkForce, linkDistance, data]);
+  }, [centerForce, repelForce, linkForce, linkDistance, timeProgress]);
 
   return (
     <div className="w-full max-w-lg mx-auto p-4 bg-[#ddd] text-gray-100">
@@ -227,6 +214,18 @@ const LeetCodeGraph = () => {
               step="0.1"
               value={linkDistance}
               onChange={(e) => setLinkDistance(parseFloat(e.target.value))}
+              className="w-full accent-white"
+            />
+          </div>
+          <div className="border-t border-gray-700 pt-2 mt-2">
+            <label className="block !text-white">Timeline Progress</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={timeProgress}
+              onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
               className="w-full accent-white"
             />
           </div>
