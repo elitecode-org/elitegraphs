@@ -213,6 +213,9 @@ const LeetCodeGraph = () => {
 
     simulationRef.current = d3
       .forceSimulation(visibleData.nodes)
+      .alphaDecay(0.1)
+      .alphaMin(0.001)
+      .velocityDecay(0.3)
       .force(
         "link",
         d3
@@ -220,14 +223,26 @@ const LeetCodeGraph = () => {
           .id((d) => d.id)
           .distance(linkDistance * 100)
       )
-      .force("charge", d3.forceManyBody().strength(-repelForce * 400))
+      .force(
+        "charge",
+        d3
+          .forceManyBody()
+          .strength(-repelForce * 400)
+          .theta(0.9)
+          .distanceMin(1)
+          .distanceMax(width / 2)
+      )
       .force(
         "center",
-        d3.forceCenter(0, 0).strength(centerForce) // Changed to (0,0) since we're centering with the transform
+        d3.forceCenter(0, 0).strength(centerForce)
       )
       .force(
         "collision",
-        d3.forceCollide().radius((d) => sizeScale(d.connections) + 5)
+        d3
+          .forceCollide()
+          .radius((d) => sizeScale(d.connections) + 5)
+          .strength(0.7)
+          .iterations(1)
       );
 
     simulationRef.current.force("link").strength(linkForce);
@@ -289,14 +304,22 @@ const LeetCodeGraph = () => {
           }`
       );
 
-    simulationRef.current.on("tick", () => {
-      links
-        .attr("x1", (d) => d.source.x)
-        .attr("y1", (d) => d.source.y)
-        .attr("x2", (d) => d.target.x)
-        .attr("y2", (d) => d.target.y);
+    simulationRef.current.tick(30);
 
-      nodeGroups.attr("transform", (d) => `translate(${d.x},${d.y})`);
+    simulationRef.current.on("tick", () => {
+      if (!simulationRef.current.tickRequest) {
+        simulationRef.current.tickRequest = requestAnimationFrame(() => {
+          links
+            .attr("x1", (d) => d.source.x)
+            .attr("y1", (d) => d.source.y)
+            .attr("x2", (d) => d.target.x)
+            .attr("y2", (d) => d.target.y);
+
+          nodeGroups.attr("transform", (d) => `translate(${d.x},${d.y})`);
+          
+          simulationRef.current.tickRequest = null;
+        });
+      }
     });
 
     function dragstarted(event, d) {
@@ -320,6 +343,9 @@ const LeetCodeGraph = () => {
     return () => {
       if (simulationRef.current) {
         simulationRef.current.stop();
+        if (simulationRef.current.tickRequest) {
+          cancelAnimationFrame(simulationRef.current.tickRequest);
+        }
       }
     };
   }, [
