@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as d3 from "d3";
-import randomGraph from "../random_graph_with_only_categories.json";
+import randomGraph from "../random_graph_with_all_timestamps.json";
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
