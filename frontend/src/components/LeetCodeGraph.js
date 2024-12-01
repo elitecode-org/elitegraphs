@@ -7,56 +7,18 @@ import React, {
 } from "react";
 import * as d3 from "d3";
 import randomGraph from "../data.json";
-import styled from 'styled-components';
-
-const ControlsContainer = styled.div`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 24rem;
-  padding: 1.5rem;
-  background: #1E1E1E;
-  border-radius: 0.75rem;
-  backdrop-filter: blur(4px);
-  font-size: 0.875rem;
-  z-index: 50;
-`;
-
-const ControlsTitle = styled.h3`
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 300;
-  margin-bottom: 1.5rem;
-`;
-
-const TimelineSlider = styled.input`
-  width: 100%;
-  height: 0.5rem;
-  background: #374151;
-  border-radius: 0.5rem;
-  appearance: none;
-  cursor: pointer;
-
-  &::-webkit-slider-thumb {
-    appearance: none;
-    width: 1.5rem;
-    height: 1.5rem;
-    background: white;
-    border-radius: 9999px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  }
-
-  &::-moz-range-thumb {
-    width: 1.5rem;
-    height: 1.5rem;
-    background: white;
-    border: none;
-    border-radius: 9999px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  }
-`;
+import {
+  ControlsContainer,
+  ControlsTitle,
+  TimelineSlider,
+  StatsContainer,
+  Username,
+  StatsRow,
+  StatValue,
+  StatLabel,
+  DifficultyStats,
+  DifficultyItem,
+} from "./LeetCodeGraph.styles";
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -65,7 +27,7 @@ const LeetCodeGraph = () => {
   const [linkForce, setLinkForce] = useState(0.8);
   const [linkDistance, setLinkDistance] = useState(0.5);
   const [timeProgress, setTimeProgress] = useState(0);
-  
+
   const simulationRef = useRef(null);
   const data = randomGraph;
 
@@ -271,7 +233,8 @@ const LeetCodeGraph = () => {
       .data(visibleData.nodes)
       .join("g")
       .call(
-        d3.drag()
+        d3
+          .drag()
           .on("start", dragstarted)
           .on("drag", dragged)
           .on("end", dragended)
@@ -293,10 +256,11 @@ const LeetCodeGraph = () => {
 
     nodes
       .append("title")
-      .text((d) =>
-        `${d.id}\nConnections: ${d.connections}\nCategories: ${
-          d.categories ? d.categories.join(", ") : d.category
-        }`
+      .text(
+        (d) =>
+          `${d.id}\nConnections: ${d.connections}\nCategories: ${
+            d.categories ? d.categories.join(", ") : d.category
+          }`
       );
 
     simulationRef.current.on("tick", () => {
@@ -339,11 +303,24 @@ const LeetCodeGraph = () => {
     linkDistance,
     timeProgress,
     getVisibleData,
-    categoryColors
+    categoryColors,
   ]);
 
   return (
     <div className="relative w-full h-[800px]">
+      <StatsContainer>
+        <Username>yangsteven</Username>
+        <StatsRow>
+          <StatValue>100</StatValue>
+          <StatLabel>solved</StatLabel>
+        </StatsRow>
+        <DifficultyStats>
+          <DifficultyItem color="#00B8A3">40</DifficultyItem>
+          <DifficultyItem color="#FFC01E">35</DifficultyItem>
+          <DifficultyItem color="#FF375F">25</DifficultyItem>
+        </DifficultyStats>
+      </StatsContainer>
+
       <ControlsContainer>
         <ControlsTitle>Timeline Progress</ControlsTitle>
         <TimelineSlider
