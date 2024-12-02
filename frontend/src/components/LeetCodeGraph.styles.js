@@ -108,8 +108,60 @@ export const DifficultyItem = styled.div`
 `;
 
 export const InstructionText = styled.div`
+  position: absolute;
+  bottom: -30px;
+  right: 10px;
   color: #666;
-  font-size: 0.8rem;
-  margin-top: 15px;
-  text-align: center;
+  font-size: 1rem;
+  pointer-events: none;
+`;
+
+export const SearchContainer = styled.div`
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: ${props => props.show ? 'flex' : 'none'};
+  align-items: center;
+  gap: 8px;
+  background: rgba(45, 45, 45, 0.98);
+  padding: 6px 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  width: 600px;
+`;
+
+export const SearchInput = styled.input`
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 4px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+`;
+
+export const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+  }
 `;

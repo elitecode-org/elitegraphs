@@ -6,7 +6,9 @@ import React, {
   useMemo,
 } from "react";
 import * as d3 from "d3";
+import { debounce } from "lodash";
 import randomGraph from "../final_data4.json";
+import { categoryColors } from "../constants/leetcodeCategories";
 import {
   ControlsContainer,
   ControlsTitle,
@@ -18,18 +20,11 @@ import {
   StatLabel,
   DifficultyStats,
   DifficultyItem,
+  InstructionText,
+  SearchContainer,
+  SearchInput,
+  CloseButton,
 } from "./LeetCodeGraph.styles";
-import { debounce } from "lodash";
-import styled from "styled-components";
-
-const InstructionText = styled.div`
-  position: absolute;
-  bottom: -30px;
-  right: 10px;
-  color: #666;
-  font-size: 1rem;
-  pointer-events: none;
-`;
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -38,87 +33,11 @@ const LeetCodeGraph = () => {
   const [linkForce, setLinkForce] = useState(0.8);
   const [linkDistance, setLinkDistance] = useState(0.5);
   const [timeProgress, setTimeProgress] = useState(0);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const simulationRef = useRef(null);
   const data = randomGraph;
-
-  const categoryColors = useMemo(
-    () => ({
-      Array: "#4f9fff",
-      String: "#92d2a5",
-      Tree: "#ffd280",
-      "Linked List": "#a5a6f6",
-      Graph: "#f4a4c0",
-      Stack: "#ff9e9e",
-      Queue: "#9ef1ff",
-      "Hash Table": "#ffc4e6",
-      "Binary Search": "#c9b1ff",
-      "Dynamic Programming": "#ffb347",
-
-      // Advanced Categories
-      Sorting: "#ff7f7f",
-      Greedy: "#7fbfff",
-      Backtracking: "#98fb98",
-      "Bit Manipulation": "#dda0dd",
-      Math: "#ffdab9",
-      Database: "#87cefa",
-      Matrix: "#f08080",
-      "Breadth-First Search": "#98fb98",
-      "Depth-First Search": "#deb887",
-      "Two Pointers": "#b0c4de",
-      "Union Find": "#f0e68c",
-      Trie: "#e6e6fa",
-      "Divide and Conquer": "#ffa07a",
-      "Sliding Window": "#87ceeb",
-      "Topological Sort": "#dda0dd",
-      "Shortest Path": "#90ee90",
-      Geometry: "#ffb6c1",
-      "Probability and Statistics": "#add8e6",
-      "Game Theory": "#f0fff0",
-      "Number Theory": "#ffe4e1",
-      Combinatorics: "#e0ffff",
-      Interactive: "#fafad2",
-      Memoization: "#d8bfd8",
-      "Monotonic Stack": "#afeeee",
-      "Segment Tree": "#db7093",
-      "Rolling Hash": "#f5deb3",
-      "Minimum Spanning Tree": "#bc8f8f",
-      "Counting Sort": "#b8860b",
-      "Radix Sort": "#bdb76b",
-      Shell: "#8fbc8f",
-      "Strongly Connected Component": "#cd853f",
-      "Reservoir Sampling": "#daa520",
-      "Eulerian Circuit": "#808000",
-      Bitmask: "#4682b4",
-      "Rejection Sampling": "#483d8b",
-      "Doubly-Linked List": "#008b8b",
-      "Data Stream": "#556b2f",
-      "Biconnected Component": "#8b008b",
-      "Monotonic Queue": "#2f4f4f",
-      "Prefix Sum": "#800000",
-      "Brain Teaser": "#8b4513",
-      Randomized: "#808080",
-      "Hash Function": "#4b0082",
-      Concurrency: "#800080",
-      Recursion: "#008080",
-      "Binary Tree": "#98fb98",
-      "Binary Search Tree": "#dda0dd",
-      "Binary Indexed Tree": "#b8860b",
-      "Bucket Sort": "#cd853f",
-      Counting: "#4682b4",
-      Design: "#556b2f",
-      Enumeration: "#8b008b",
-      "Line Sweep": "#2f4f4f",
-      "Heap (Priority Queue)": "#800000",
-      Iterator: "#8b4513",
-      "Ordered Set": "#4b0082",
-      Quickselect: "#800080",
-      Simulation: "#008080",
-      "String Matching": "#98fb98",
-      "Suffix Array": "#dda0dd",
-    }),
-    []
-  );
 
   const getVisibleData = useCallback(
     (progress) => {
@@ -459,6 +378,28 @@ const LeetCodeGraph = () => {
     categoryColors,
   ]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setShowSearch(true);
+        setTimeout(() => {
+          const searchInput = document.getElementById('search-input');
+          if (searchInput) {
+            searchInput.focus();
+          }
+        }, 10);
+      }
+      if (e.key === 'Escape' && showSearch) {
+        setShowSearch(false);
+        setSearchQuery('');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSearch]);
+
   // Extract user stats from the data
   const userStats = useMemo(
     () => ({
@@ -573,6 +514,24 @@ const LeetCodeGraph = () => {
         </div>
         <InstructionText>⌘/Ctrl + Click to open problem</InstructionText>
       </ControlsContainer>
+
+      <SearchContainer show={showSearch}>
+        <SearchInput
+          id="search-input"
+          type="text"
+          placeholder="Search for a question..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <CloseButton 
+          onClick={() => {
+            setShowSearch(false);
+            setSearchQuery('');
+          }}
+        >
+          ×
+        </CloseButton>
+      </SearchContainer>
 
       <svg
         ref={svgRef}
