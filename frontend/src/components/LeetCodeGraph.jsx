@@ -7,8 +7,48 @@ import React, {
 } from "react";
 import * as d3 from "d3";
 import { debounce } from "lodash";
-import randomGraph from "../final_data4.json";
-import { categoryColors } from "../constants/leetcodeCategories";
+import { useUser } from "../context/userContext";
+
+const categoryColors = {
+  Array: "#FF6B6B",
+  String: "#4ECDC4",
+  "Hash Table": "#45B7D1",
+  "Dynamic Programming": "#96CEB4",
+  Math: "#FFBE0B",
+  Sorting: "#FF006E",
+  Greedy: "#8338EC",
+  "Depth-First Search": "#3A86FF",
+  "Binary Search": "#FB5607",
+  Database: "#FF006E",
+  "Breadth-First Search": "#3A86FF",
+  Tree: "#2EC4B6",
+  Matrix: "#FF9F1C",
+  "Binary Tree": "#2EC4B6",
+  "Two Pointers": "#FF006E",
+  "Bit Manipulation": "#8338EC",
+  Stack: "#FF6B6B",
+  "Heap (Priority Queue)": "#4ECDC4",
+  Graph: "#45B7D1",
+  Design: "#96CEB4",
+  "Prefix Sum": "#FFBE0B",
+  Simulation: "#FF006E",
+  Backtracking: "#8338EC",
+  Counting: "#3A86FF",
+  "Sliding Window": "#FB5607",
+  "Union Find": "#FF006E",
+  "Linked List": "#3A86FF",
+  "Ordered Set": "#2EC4B6",
+  "Monotonic Stack": "#FF9F1C",
+  Enumeration: "#2EC4B6",
+  Trie: "#FF006E",
+  "Divide and Conquer": "#8338EC",
+  "Binary Search Tree": "#2EC4B6",
+  Queue: "#4ECDC4",
+  "Number Theory": "#FFBE0B",
+  Bitmask: "#8338EC",
+  Recursion: "#3A86FF",
+  Memoization: "#96CEB4",
+};
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -20,8 +60,87 @@ const LeetCodeGraph = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { problems, stats } = useUser();
+
+  console.log(problems);
+
+  // Transform problems into graph data format
+  const data = useMemo(() => {
+    if (!problems || problems.length === 0) {
+      return { nodes: [], links: [] };
+    }
+
+    // Create nodes from problems and category tags
+    const problemNodes = problems.map((problem) => ({
+      id: problem.problemId,
+      name: problem.questionTitle,
+      type: "problem",
+      difficulty: problem.difficultyLevel,
+      categories: problem.tags || [], // Tags merged from leetcode_tags
+      timestamp: problem.timestamp || new Date(),
+      status: problem.status,
+      questionLink: problem.questionLink,
+    }));
+
+    // Create unique category nodes
+    const uniqueCategories = [
+      ...new Set(problems.flatMap((p) => p.tags || [])),
+    ];
+    const categoryNodes = uniqueCategories.map((category) => ({
+      id: `category-${category}`,
+      name: category,
+      type: "category",
+      categories: [category],
+    }));
+
+    const nodes = [...problemNodes, ...categoryNodes];
+
+    // Create links
+    const links = [];
+
+    // Link problems to their category nodes
+    problemNodes.forEach((problem) => {
+      problem.categories.forEach((category) => {
+        links.push({
+          source: problem.id,
+          target: `category-${category}`,
+          value: 1,
+          type: "problem-category",
+          categories: [category],
+          timestamp: problem.timestamp || new Date(),
+        });
+      });
+    });
+
+    // Link problems with each other if they share 2 or more categories
+    for (let i = 0; i < problemNodes.length; i++) {
+      for (let j = i + 1; j < problemNodes.length; j++) {
+        const commonCategories = problemNodes[i].categories.filter((category) =>
+          problemNodes[j].categories.includes(category)
+        );
+
+        // Only create a link if there are 2 or more common categories
+        if (commonCategories.length >= 2) {
+          links.push({
+            source: problemNodes[i].id,
+            target: problemNodes[j].id,
+            value: commonCategories.length, // Strength based on number of shared categories
+            type: "problem-problem",
+            categories: commonCategories,
+            timestamp: problemNodes[i].timestamp || new Date(),
+          });
+        }
+      }
+    }
+
+    console.log("Generated data:", { nodes, links }); // Debug log
+
+    return { nodes, links };
+  }, [problems]);
+
+  console.log(data);
+
   const simulationRef = useRef(null);
-  const data = randomGraph;
 
   const getVisibleData = useCallback(
     (progress) => {
@@ -165,9 +284,11 @@ const LeetCodeGraph = () => {
     const height = 700;
 
     const getNodeColor = (node) => {
-      const firstCategory = node.categories
-        ? node.categories[0]
-        : node.category;
+      if (node.type === "category") {
+        return categoryColors[node.name] || "#808080";
+      }
+      // For problem nodes, use the first category's color
+      const firstCategory = node.categories ? node.categories[0] : null;
       return categoryColors[firstCategory] || "#808080";
     };
 
@@ -177,13 +298,13 @@ const LeetCodeGraph = () => {
     const sizeScale = d3
       .scaleLinear()
       .domain([0, Math.max(1, maxConnections)])
-      .range([1, 70]);
+      .range([3, 5]);
 
     // Create the SVG container
     const svg = d3
       .select(svgRef.current)
       .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("class", "bg-gray-50 rounded-lg");
+      .attr("class", "bg-gray-950 rounded-lg");
 
     // Create a group for the zoom container
     const g = svg.append("g");
@@ -243,8 +364,8 @@ const LeetCodeGraph = () => {
       .selectAll("line")
       .data(visibleData.links)
       .join("line")
-      .attr("stroke", "#636363")
-      .attr("stroke-opacity", 0.4)
+      .attr("stroke", "#4B5563")
+      .attr("stroke-opacity", 0.2)
       .attr("stroke-width", 1);
 
     const nodeGroups = g
@@ -260,19 +381,27 @@ const LeetCodeGraph = () => {
           .on("end", dragended)
       );
 
+    const getNodeSize = (node) => {
+      if (node.type === "category") {
+        return 15; // Keep category nodes big
+      }
+      return 3; // Make problem nodes small and consistent size
+    };
+
     nodeGroups
       .append("circle")
-      .attr("r", (d) => sizeScale(d.connections || 0))
+      .attr("r", (d) => getNodeSize(d))
       .attr("fill", (d) => getNodeColor(d))
-      .attr("stroke-width", 0);
+      .attr("stroke", (d) => (d.type === "category" ? "#fff" : "none"))
+      .attr("stroke-width", (d) => (d.type === "category" ? 2 : 0));
 
     const nodeTexts = nodeGroups
       .append("text")
-      .text((d) => (d.connections >= 100 ? d.name : ""))
-      .attr("x", (d) => sizeScale(d.connections || 0) + 2)
+      .text((d) => (d.type === "category" ? d.name : "")) // Only show category names by default
+      .attr("x", (d) => getNodeSize(d) + 2)
       .attr("y", 3)
-      .attr("font-size", "5px")
-      .attr("fill", "#ddd");
+      .attr("font-size", (d) => (d.type === "category" ? "8px" : "4px"))
+      .attr("fill", "#9CA3AF");
 
     // Add hover functionality
     nodeGroups
@@ -282,7 +411,9 @@ const LeetCodeGraph = () => {
       .on("mouseout", function (event, d) {
         d3.select(this)
           .select("text")
-          .text(d.connections >= 100 ? d.name : "");
+          .text(
+            d.type === "category" ? d.name : d.connections >= 100 ? d.name : ""
+          );
       });
 
     nodeGroups
@@ -299,8 +430,7 @@ const LeetCodeGraph = () => {
         // Check if command (Mac) or ctrl (Windows) key is pressed
         if (event.metaKey || event.ctrlKey) {
           event.preventDefault();
-          const url = getLeetCodeUrl(d.name);
-          window.open(url, "_blank");
+          window.open(d.questionLink, "_blank");
         }
       })
       .style("cursor", "pointer"); // Change cursor to pointer to indicate clickable
@@ -387,26 +517,18 @@ const LeetCodeGraph = () => {
   // Extract user stats from the data
   const userStats = useMemo(
     () => ({
-      username: data.user?.username || "yangsteven",
-      total: data.user?.total_problems_completed || 0,
-      easy: data.user?.easy_questions || 0,
-      medium: data.user?.medium_questions || 0,
-      hard: data.user?.hard_questions || 0,
+      username: stats?.username || "User",
+      total: stats?.totalSolved || 0,
+      easy: stats?.easySolved || 0,
+      medium: stats?.mediumSolved || 0,
+      hard: stats?.hardSolved || 0,
     }),
-    [data]
+    [stats]
   );
 
   // Update the getLeetCodeUrl function
-  const getLeetCodeUrl = (problemName) => {
-    // Convert problem name to leetcode URL format
-    // e.g. "Number of Squareful Arrays" -> "number-of-squareful-arrays"
-    const urlName = problemName
-      .toLowerCase()
-      // First replace spaces with dashes
-      .replace(/\s+/g, "-")
-      // Then remove any remaining special characters
-      .replace(/[^a-zA-Z0-9-]/g, "");
-    return `https://leetcode.com/problems/${urlName}/description/`;
+  const getLeetCodeUrl = (problem) => {
+    return problem.questionLink;
   };
 
   return (
@@ -447,7 +569,7 @@ const LeetCodeGraph = () => {
           className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
-            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-pink-500 
             [&::-webkit-slider-thumb]:to-purple-500"
           min="0"
           max="1"
@@ -467,7 +589,7 @@ const LeetCodeGraph = () => {
           className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
-            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-pink-500 
             [&::-webkit-slider-thumb]:to-purple-500"
           min="0"
           max="1"
@@ -487,7 +609,7 @@ const LeetCodeGraph = () => {
           className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
-            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-pink-500 
             [&::-webkit-slider-thumb]:to-purple-500"
           min="0"
           max="1"
@@ -507,7 +629,7 @@ const LeetCodeGraph = () => {
           className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
-            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-pink-500 
             [&::-webkit-slider-thumb]:to-purple-500"
           min="0"
           max="1"
@@ -527,7 +649,7 @@ const LeetCodeGraph = () => {
           className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
-            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-pink-500 
             [&::-webkit-slider-thumb]:to-purple-500"
           min="0"
           max="1"
