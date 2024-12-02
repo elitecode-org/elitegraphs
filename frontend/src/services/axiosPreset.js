@@ -8,11 +8,16 @@ export const createApiClient = ({ getToken, isSignedIn }) => {
   axiosPreset.interceptors.request.use(
     async (config) => {
       if (isSignedIn) {
-        const token = await getToken();
-        if (!token) {
-          throw new Error("No token found");
+        try {
+          const token = await getToken();
+          if (!token) {
+            throw new Error("No token found");
+          }
+          config.headers.Authorization = `Bearer ${token}`;
+        } catch (error) {
+          console.error("Error retrieving token:", error);
+          throw error;
         }
-        config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     },

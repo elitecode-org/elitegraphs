@@ -75,8 +75,8 @@ const LeetCodeGraph = () => {
       name: problem.questionTitle,
       type: "problem",
       difficulty: problem.difficultyLevel,
-      categories: problem.tags || [], // Tags merged from leetcode_tags
-      timestamp: problem.completedAt || new Date(),
+      categories: problem.tags || [], // Make sure your backend provides tags
+      timestamp: new Date(problem.lastAttempted),
       status: problem.status,
       questionLink: problem.questionLink,
     }));
@@ -151,54 +151,88 @@ const LeetCodeGraph = () => {
     return { nodes, links };
   }, [problems]);
 
-  console.log(data);
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
 
   const simulationRef = useRef(null);
 
   const getVisibleData = useCallback(
     (progress) => {
-      const dates = data.links.map((link) => new Date(link.timestamp));
+      // Only consider problem nodes for timeline filtering
+      const problemNodes = data.nodes.filter((node) => node.type === "problem");
+      const dates = problemNodes.map((node) => new Date(node.timestamp));
       const minDate = new Date(Math.min(...dates));
       const maxDate = new Date(Math.max(...dates));
 
       const totalTime = maxDate - minDate;
       const cutoffDate = new Date(minDate.getTime() + totalTime * progress);
 
-      const visibleLinks = data.links.filter(
-        (link) => new Date(link.timestamp) <= cutoffDate
+      // Filter problem nodes based on timestamp
+      const visibleProblemNodes = problemNodes.filter(
+        (node) => new Date(node.timestamp) <= cutoffDate
       );
 
-      const visibleNodeIds = new Set();
-      visibleLinks.forEach((link) => {
-        visibleNodeIds.add(
-          typeof link.source === "object" ? link.source.id : link.source
-        );
-        visibleNodeIds.add(
-          typeof link.target === "object" ? link.target.id : link.target
+      // Get all category nodes initially
+      const categoryNodes = data.nodes.filter(
+        (node) => node.type === "category"
+      );
+
+      // Filter links to only include those connected to visible problem nodes
+      const visibleProblemIds = new Set(
+        visibleProblemNodes.map((node) => node.id)
+      );
+      const visibleLinks = data.links.filter((link) => {
+        const sourceId =
+          typeof link.source === "object" ? link.source.id : link.source;
+        const targetId =
+          typeof link.target === "object" ? link.target.id : link.target;
+
+        if (link.type === "problem-category") {
+          return visibleProblemIds.has(sourceId);
+        }
+        return (
+          visibleProblemIds.has(sourceId) && visibleProblemIds.has(targetId)
         );
       });
 
-      const visibleNodes = data.nodes.filter((node) =>
-        visibleNodeIds.has(node.id)
-      );
-
-      visibleNodes.forEach((node) => {
-        node.connections = 0;
-      });
-
+      // Find which categories have connections
+      const connectedCategoryIds = new Set();
       visibleLinks.forEach((link) => {
         const sourceId =
           typeof link.source === "object" ? link.source.id : link.source;
         const targetId =
           typeof link.target === "object" ? link.target.id : link.target;
 
-        const sourceNode = visibleNodes.find((n) => n.id === sourceId);
-        const targetNode = visibleNodes.find((n) => n.id === targetId);
+        if (link.type === "problem-category") {
+          connectedCategoryIds.add(targetId);
+        }
+      });
 
-        if (sourceNode)
-          sourceNode.connections = (sourceNode.connections || 0) + 1;
-        if (targetNode)
-          targetNode.connections = (targetNode.connections || 0) + 1;
+      // Filter category nodes to only include those with connections
+      const visibleCategoryNodes = categoryNodes.filter((node) =>
+        connectedCategoryIds.has(node.id)
+      );
+
+      // Combine filtered problem nodes with filtered category nodes
+      const visibleNodes = [...visibleProblemNodes, ...visibleCategoryNodes];
+
+      // Update connection counts
+      const nodeConnectionCounts = {};
+      visibleLinks.forEach((link) => {
+        const sourceId =
+          typeof link.source === "object" ? link.source.id : link.source;
+        const targetId =
+          typeof link.target === "object" ? link.target.id : link.target;
+
+        nodeConnectionCounts[sourceId] =
+          (nodeConnectionCounts[sourceId] || 0) + 1;
+        nodeConnectionCounts[targetId] =
+          (nodeConnectionCounts[targetId] || 0) + 1;
+      });
+
+      visibleNodes.forEach((node) => {
+        node.connections = nodeConnectionCounts[node.id] || 0;
       });
 
       return { nodes: visibleNodes, links: visibleLinks };
@@ -621,14 +655,14 @@ const LeetCodeGraph = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showSearch]);
 
-  // Extract user stats from the data
+  // Extract user stats from the context
   const userStats = useMemo(
     () => ({
       username: stats?.username || "User",
       total: stats?.totalSolved || 0,
-      easy: stats?.easy.solved || 0,
-      medium: stats?.medium.solved || 0,
-      hard: stats?.hard.solved || 0,
+      easy: stats?.easy?.solved || 0,
+      medium: stats?.medium?.solved || 0,
+      hard: stats?.hard?.solved || 0,
     }),
     [stats]
   );

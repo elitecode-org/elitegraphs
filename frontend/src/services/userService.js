@@ -25,27 +25,18 @@ class UserService {
     }
   }
 
-  async getScrapedProblems(dashboardKey) {
+  async getUser() {
     try {
-      const response = await this.api.get(
-        `${this.baseUrl}/problems/scraped/${dashboardKey}`
-      );
-      console.log(response.data);
+      const response = await this.api.get(`${this.baseUrl}/users`);
       return response.data;
     } catch (error) {
-      if (error.response?.status === 404) {
-        throw new Error("No problems found for this user");
-      }
-      if (error.response?.status === 403) {
-        throw new Error("Unauthorized access");
-      }
-      throw new Error("Failed to fetch problems");
+      throw new Error("Failed to get user");
     }
   }
 
-  async validateDashboardKey(dashboardKey) {
+  async validateDashboardKey() {
     try {
-      await this.getScrapedProblems(dashboardKey);
+      await this.getUser(localStorage.getItem("clerkId"));
       return true;
     } catch (error) {
       return false;

@@ -9,7 +9,7 @@ export const useClerkUser = () => {
 
   useEffect(() => {
     const createDatabaseUser = async () => {
-      if (user && isLoaded && !localStorage.getItem("dbUserCreated")) {
+      if (user && isLoaded) {
         try {
           await userService.createUser({
             email: user.primaryEmailAddress?.emailAddress || "",
@@ -17,6 +17,7 @@ export const useClerkUser = () => {
             clerkId: user.id,
             username: user.username || undefined,
           });
+          localStorage.setItem("clerkId", user.id);
         } catch (error) {
           // If error is due to user already existing, we can ignore it
           if (

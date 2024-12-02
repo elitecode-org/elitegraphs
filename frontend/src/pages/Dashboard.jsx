@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useUser } from "../context/userContext";
 import { useAuth } from "@clerk/clerk-react";
 import createUserService from "../services/userService";
+import { useUser } from "../context/userContext";
 
 function StatsCard({ title, value, total }) {
   return (
@@ -47,26 +47,44 @@ function RecentProblemCard({ problem }) {
 }
 
 export default function Dashboard() {
-  const {
-    stats,
-    problems,
-    isLoading,
-    error,
-    dashboardKey,
-    lastUpdated,
-    logout,
-    getTotalCompletionRate,
-  } = useUser();
-
+  const { problems, stats, isLoading } = useUser();
   const { getToken, isSignedIn } = useAuth();
   const userService = createUserService({ getToken, isSignedIn });
-
   const [inputKey, setInputKey] = useState("");
+  const [error, setError] = useState(null);
+  const [dashboardKey, setDashboardKey] = useState(
+    localStorage.getItem("dashboardKey") || ""
+  );
+
+  const { refetchUserData } = useUser();
 
   const handleSubmitKey = async (e) => {
     e.preventDefault();
-    await userService.syncScrapedProblems(inputKey);
+    try {
+      setError(null);
+
+      // Sync the scraped problems first
+      await userService.syncScrapedProblems(inputKey);
+
+      // Refetch user data to update the dashboard
+      await refetchUserData();
+
+      // If sync successful, save the key
+      localStorage.setItem("dashboardKey", inputKey);
+      setDashboardKey(inputKey);
+    } catch (err) {
+      setError("Failed to validate dashboard key");
+      setInputKey("");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 pl-16 p-8 flex items-center justify-center">
+        <div className="text-white">Loading your LeetCode journey...</div>
+      </div>
+    );
+  }
 
   if (!dashboardKey) {
     return (
@@ -140,14 +158,6 @@ export default function Dashboard() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-950 pl-16 p-8 flex items-center justify-center">
-        <div className="text-white">Loading your LeetCode journey...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-950 pr-16 pl-32 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -161,7 +171,10 @@ export default function Dashboard() {
           </h1>
 
           <button
-            onClick={logout}
+            onClick={() => {
+              localStorage.removeItem("dashboardKey");
+              setDashboardKey("");
+            }}
             className="px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-800 
               text-gray-200 hover:bg-gray-800/50 transition-colors"
           >
@@ -187,7 +200,9 @@ export default function Dashboard() {
           />
           <StatsCard
             title="Total Completion"
-            value={`${getTotalCompletionRate().toFixed(1)}%`}
+            value={`${((stats?.totalSolved / problems.length) * 100).toFixed(
+              1
+            )}%`}
           />
         </div>
 
@@ -196,14 +211,19 @@ export default function Dashboard() {
             Recent Problems
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {problems.slice(0, 6).map((problem) => (
-              <RecentProblemCard key={problem.problemId} problem={problem} />
-            ))}
+            {problems
+              .sort(
+                (a, b) => new Date(b.lastAttempted) - new Date(a.lastAttempted)
+              )
+              .slice(0, 6)
+              .map((problem) => (
+                <RecentProblemCard key={problem.problemId} problem={problem} />
+              ))}
           </div>
         </div>
 
         <div className="text-gray-400 text-sm">
-          Last updated: {new Date(lastUpdated || "").toLocaleString()}
+          Last updated: {new Date().toLocaleString()}
         </div>
       </div>
     </div>
