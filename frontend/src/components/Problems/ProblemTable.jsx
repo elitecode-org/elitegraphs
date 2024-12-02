@@ -5,7 +5,9 @@ import { getDifficultyColor, getLeetCodeUrl } from "./utils";
 import CategoryTags from "./CategoryTags";
 import ExternalLink from "./ExternalLink";
 
-function ProblemTable({ problems }) {
+function ProblemTable({ problems, showAll }) {
+  const displayedProblems = showAll ? problems : problems.slice(0, 10);
+
   const headerClasses = `px-6 py-4 text-left text-lg font-medium border-b border-gray-800/30
     text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500`;
 
@@ -14,7 +16,7 @@ function ProblemTable({ problems }) {
       <table className="w-full border-collapse">
         <thead className="bg-gray-900/30">
           <tr>
-            {["Title", "Difficulty", "Last Completed", "Categories", ""].map(
+            {["Title", "Difficulty", "Last Attempted", "Categories", ""].map(
               (header) => (
                 <th key={header} className={headerClasses}>
                   {header}
@@ -24,7 +26,7 @@ function ProblemTable({ problems }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-800/30">
-          {problems?.map((problem) => (
+          {displayedProblems.map((problem) => (
             <TableRow key={problem.id} problem={problem} />
           ))}
         </tbody>
@@ -60,8 +62,8 @@ function TableRow({ problem }) {
         </span>
       </td>
       <td className="px-6 py-4 text-gray-400">
-        {problem.completedAt
-          ? format(new Date(problem.completedAt), "MMM d, yyyy")
+        {problem.lastAttempted
+          ? format(new Date(problem.lastAttempted), "MMM d, yyyy")
           : "Not completed"}
       </td>
       <td className="px-6 py-4">

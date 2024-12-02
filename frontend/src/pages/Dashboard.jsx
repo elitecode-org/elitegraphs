@@ -3,13 +3,15 @@ import { motion } from "framer-motion";
 import { useAuth } from "@clerk/clerk-react";
 import createUserService from "../services/userService";
 import { useUser } from "../context/userContext";
+import { getDifficultyColor } from "../components/Problems/utils";
 
 function StatsCard({ title, value, total }) {
   return (
     <motion.div
       className="p-6 rounded-lg bg-gray-900/50 border border-gray-800 backdrop-blur-lg"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <h3
         className="text-xl font-semibold mb-2 text-transparent bg-clip-text 
@@ -40,7 +42,13 @@ function RecentProblemCard({ problem }) {
         >
           {problem.status === "accepted" ? "Solved" : "Attempted"}
         </span>
-        <span className="text-sm text-gray-400">{problem.difficultyLevel}</span>
+        <span
+          className={`text-sm text-gray-400 ${getDifficultyColor(
+            problem.difficultyLevel
+          )}`}
+        >
+          {problem.difficultyLevel}
+        </span>
       </div>
     </motion.div>
   );
@@ -184,22 +192,22 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <StatsCard
-            title="Easy Problems"
+            title="Easy"
             value={stats?.easy?.solved || 0}
             total={stats?.easy?.total || 0}
           />
           <StatsCard
-            title="Medium Problems"
+            title="Medium "
             value={stats?.medium?.solved || 0}
             total={stats?.medium?.total || 0}
           />
           <StatsCard
-            title="Hard Problems"
+            title="Hard"
             value={stats?.hard?.solved || 0}
             total={stats?.hard?.total || 0}
           />
           <StatsCard
-            title="Total Completion"
+            title="Completion Rate"
             value={`${((stats?.totalSolved / problems.length) * 100).toFixed(
               1
             )}%`}

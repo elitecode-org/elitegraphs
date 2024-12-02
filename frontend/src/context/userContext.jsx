@@ -61,6 +61,7 @@ export function UserProvider({ children }) {
         easy: { solved: 0, attempted: 0, total: 0 },
         medium: { solved: 0, attempted: 0, total: 0 },
         hard: { solved: 0, attempted: 0, total: 0 },
+        username: userData.username,
       };
 
       // Calculate problem tags

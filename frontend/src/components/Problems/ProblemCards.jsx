@@ -4,10 +4,12 @@ import { motion } from "framer-motion";
 import { getDifficultyColor, getLeetCodeUrl } from "./utils";
 import CategoryTags from "./CategoryTags";
 
-function ProblemCards({ problems }) {
+function ProblemCards({ problems, showAll }) {
+  const displayedProblems = showAll ? problems : problems.slice(0, 6);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {problems.map((problem) => (
+      {displayedProblems.map((problem) => (
         <motion.div
           key={problem.id}
           initial={{ opacity: 0, y: 20 }}
@@ -37,9 +39,9 @@ function ProblemCards({ problems }) {
             </span>
             <span className="text-gray-500">•</span>
             <span className="text-sm text-gray-400">
-              {problem.completedAt
+              {problem.lastAttempted
                 ? `Last solved ${format(
-                    new Date(problem.completedAt),
+                    new Date(problem.lastAttempted),
                     "MMM d, yyyy"
                   )}`
                 : "Not solved yet"}
