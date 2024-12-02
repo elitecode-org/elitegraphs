@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { format } from 'date-fns';
-import { categoryColors } from '../constants/leetcodeCategories';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { format } from "date-fns";
+import { categoryColors } from "../constants/leetcodeCategories";
 
 const Table = styled.table`
   width: 100%;
@@ -45,8 +45,8 @@ const CategoryTag = styled.span`
   margin-right: 4px;
   border-radius: 4px;
   font-size: 0.8rem;
-  background: ${props => props.color}33;
-  color: ${props => props.color};
+  background: ${(props) => props.color}33;
+  color: ${(props) => props.color};
 `;
 
 const CategoryTooltip = styled.div`
@@ -56,7 +56,7 @@ const CategoryTooltip = styled.div`
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  display: ${props => props.show ? 'block' : 'none'};
+  display: ${(props) => (props.show ? "block" : "none")};
 `;
 
 const ConfidenceIndicator = styled.div`
@@ -64,33 +64,46 @@ const ConfidenceIndicator = styled.div`
   border-radius: 4px;
   display: inline-block;
   font-size: 0.8rem;
-  background: ${props => {
+  background: ${(props) => {
     switch (props.level) {
-      case 'hard': return '#ff375f22';
-      case 'normal': return '#ffc01e22';
-      case 'easy': return '#00b8a322';
-      default: return '#88888822';
+      case "hard":
+        return "#ff375f22";
+      case "normal":
+        return "#ffc01e22";
+      case "easy":
+        return "#00b8a322";
+      default:
+        return "#88888822";
     }
   }};
-  color: ${props => {
+  color: ${(props) => {
     switch (props.level) {
-      case 'hard': return '#ff375f';
-      case 'normal': return '#ffc01e';
-      case 'easy': return '#00b8a3';
-      default: return '#888';
+      case "hard":
+        return "#ff375f";
+      case "normal":
+        return "#ffc01e";
+      case "easy":
+        return "#00b8a3";
+      default:
+        return "#888";
     }
   }};
 `;
 
 const ProblemsTable = ({ problems }) => {
-  const [tooltipData, setTooltipData] = useState({ show: false, categories: [], x: 0, y: 0 });
+  const [tooltipData, setTooltipData] = useState({
+    show: false,
+    categories: [],
+    x: 0,
+    y: 0,
+  });
 
   const handleCategoryHover = (e, categories) => {
     setTooltipData({
       show: true,
       categories,
       x: e.clientX,
-      y: e.clientY
+      y: e.clientY,
     });
   };
 
@@ -99,11 +112,13 @@ const ProblemsTable = ({ problems }) => {
   };
 
   const getLeetCodeUrl = (title) => {
-    return `https://leetcode.com/problems/${title.toLowerCase().replace(/\s+/g, '-')}/`;
+    return `https://leetcode.com/problems/${title
+      .toLowerCase()
+      .replace(/\s+/g, "-")}/`;
   };
 
   return (
-    <>
+    <div className="p-8">
       <Table>
         <thead>
           <tr>
@@ -120,55 +135,69 @@ const ProblemsTable = ({ problems }) => {
             problems.map((problem) => (
               <tr key={problem.id}>
                 <Td>
-                  <TitleLink href={getLeetCodeUrl(problem.title)} target="_blank">
+                  <TitleLink
+                    href={getLeetCodeUrl(problem.title)}
+                    target="_blank"
+                  >
                     {problem.title}
                   </TitleLink>
                 </Td>
                 <Td>
-                  <span style={{ 
-                    color: problem.difficulty === 'Hard' ? '#ff375f' : 
-                           problem.difficulty === 'Medium' ? '#ffc01e' : 
-                           '#00b8a3' 
-                  }}>
+                  <span
+                    style={{
+                      color:
+                        problem.difficulty === "Hard"
+                          ? "#ff375f"
+                          : problem.difficulty === "Medium"
+                          ? "#ffc01e"
+                          : "#00b8a3",
+                    }}
+                  >
                     {problem.difficulty}
                   </span>
                 </Td>
-                <Td>{format(new Date(problem.lastCompleted), 'MMM d, yyyy')}</Td>
+                <Td>
+                  {format(new Date(problem.lastCompleted), "MMM d, yyyy")}
+                </Td>
                 <Td>
                   <ConfidenceIndicator level={problem.confidence}>
                     {problem.confidence}
                   </ConfidenceIndicator>
                 </Td>
                 <Td>
-                  <div 
-                    onMouseEnter={(e) => handleCategoryHover(e, problem.categories)}
+                  <div
+                    onMouseEnter={(e) =>
+                      handleCategoryHover(e, problem.categories)
+                    }
                     onMouseLeave={handleCategoryLeave}
                   >
                     {problem.categories.slice(0, 3).map((category, index) => (
-                      <CategoryTag 
+                      <CategoryTag
                         key={index}
-                        color={categoryColors[category] || '#888'}
+                        color={categoryColors[category] || "#888"}
                       >
                         {category}
                       </CategoryTag>
                     ))}
                     {problem.categories.length > 3 && (
-                      <CategoryTag color="#888">+{problem.categories.length - 3}</CategoryTag>
+                      <CategoryTag color="#888">
+                        +{problem.categories.length - 3}
+                      </CategoryTag>
                     )}
                   </div>
                 </Td>
                 <Td>
-                  <ExternalLink 
-                    href={getLeetCodeUrl(problem.title)} 
+                  <ExternalLink
+                    href={getLeetCodeUrl(problem.title)}
                     target="_blank"
                     title="Open in LeetCode"
                   >
-                    <svg 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
                       strokeWidth="2"
                     >
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -181,28 +210,27 @@ const ProblemsTable = ({ problems }) => {
             ))
           ) : (
             <tr>
-              <Td colSpan="6" style={{ textAlign: 'center' }}>No problems to display</Td>
+              <Td colSpan="6" style={{ textAlign: "center" }}>
+                No problems to display
+              </Td>
             </tr>
           )}
         </tbody>
       </Table>
-      <CategoryTooltip 
+      <CategoryTooltip
         show={tooltipData.show}
-        style={{ 
+        style={{
           top: tooltipData.y + 10,
-          left: tooltipData.x + 10
+          left: tooltipData.x + 10,
         }}
       >
         {tooltipData.categories.map((category, index) => (
-          <CategoryTag 
-            key={index}
-            color={categoryColors[category] || '#888'}
-          >
+          <CategoryTag key={index} color={categoryColors[category] || "#888"}>
             {category}
           </CategoryTag>
         ))}
       </CategoryTooltip>
-    </>
+    </div>
   );
 };
 
@@ -214,7 +242,7 @@ ProblemsTable.defaultProps = {
       difficulty: "Medium",
       lastCompleted: "2024-03-12T14:30:00Z",
       confidence: "normal",
-      categories: ["Array", "Sorting", "Intervals"]
+      categories: ["Array", "Sorting", "Intervals"],
     },
     {
       id: 2,
@@ -222,7 +250,7 @@ ProblemsTable.defaultProps = {
       difficulty: "Medium",
       lastCompleted: "2024-03-11T09:15:00Z",
       confidence: "hard",
-      categories: ["Hash Table", "Linked List", "Design", "Doubly-Linked List"]
+      categories: ["Hash Table", "Linked List", "Design", "Doubly-Linked List"],
     },
     {
       id: 3,
@@ -230,7 +258,7 @@ ProblemsTable.defaultProps = {
       difficulty: "Easy",
       lastCompleted: "2024-03-10T16:45:00Z",
       confidence: "easy",
-      categories: ["Array", "Dynamic Programming", "Divide and Conquer"]
+      categories: ["Array", "Dynamic Programming", "Divide and Conquer"],
     },
     {
       id: 4,
@@ -238,7 +266,13 @@ ProblemsTable.defaultProps = {
       difficulty: "Medium",
       lastCompleted: "2024-03-09T11:20:00Z",
       confidence: "normal",
-      categories: ["Hash Table", "String", "Dynamic Programming", "Trie", "Memoization"]
+      categories: [
+        "Hash Table",
+        "String",
+        "Dynamic Programming",
+        "Trie",
+        "Memoization",
+      ],
     },
     {
       id: 5,
@@ -246,9 +280,15 @@ ProblemsTable.defaultProps = {
       difficulty: "Hard",
       lastCompleted: "2024-03-08T15:10:00Z",
       confidence: "hard",
-      categories: ["Array", "Two Pointers", "Dynamic Programming", "Stack", "Monotonic Stack"]
-    }
-  ]
+      categories: [
+        "Array",
+        "Two Pointers",
+        "Dynamic Programming",
+        "Stack",
+        "Monotonic Stack",
+      ],
+    },
+  ],
 };
 
-export default ProblemsTable; 
+export default ProblemsTable;

@@ -9,22 +9,6 @@ import * as d3 from "d3";
 import { debounce } from "lodash";
 import randomGraph from "../final_data4.json";
 import { categoryColors } from "../constants/leetcodeCategories";
-import {
-  ControlsContainer,
-  ControlsTitle,
-  TimelineSlider,
-  StatsContainer,
-  Username,
-  StatsRow,
-  StatValue,
-  StatLabel,
-  DifficultyStats,
-  DifficultyItem,
-  InstructionText,
-  SearchContainer,
-  SearchInput,
-  CloseButton,
-} from "./LeetCodeGraph.styles";
 
 const LeetCodeGraph = () => {
   const svgRef = useRef();
@@ -34,7 +18,7 @@ const LeetCodeGraph = () => {
   const [linkDistance, setLinkDistance] = useState(0.5);
   const [timeProgress, setTimeProgress] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const simulationRef = useRef(null);
   const data = randomGraph;
@@ -380,24 +364,24 @@ const LeetCodeGraph = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
         e.preventDefault();
         setShowSearch(true);
         setTimeout(() => {
-          const searchInput = document.getElementById('search-input');
+          const searchInput = document.getElementById("search-input");
           if (searchInput) {
             searchInput.focus();
           }
         }, 10);
       }
-      if (e.key === 'Escape' && showSearch) {
+      if (e.key === "Escape" && showSearch) {
         setShowSearch(false);
-        setSearchQuery('');
+        setSearchQuery("");
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showSearch]);
 
   // Extract user stats from the data
@@ -426,117 +410,156 @@ const LeetCodeGraph = () => {
   };
 
   return (
-    <div className="relative w-full h-full">
-      <StatsContainer>
-        <Username>{userStats.username}</Username>
-        <StatsRow>
-          <StatValue>{userStats.total}</StatValue>
-          <StatLabel>solved</StatLabel>
-        </StatsRow>
-        <DifficultyStats>
-          <DifficultyItem color="#00B8A3">{userStats.easy}</DifficultyItem>
-          <DifficultyItem color="#FFC01E">{userStats.medium}</DifficultyItem>
-          <DifficultyItem color="#FF375F">{userStats.hard}</DifficultyItem>
-        </DifficultyStats>
-      </StatsContainer>
+    <div className="relative w-full h-full bg-gray-950">
+      <div className="absolute top-5 right-5 bg-gray-900/80 backdrop-blur-lg p-4 rounded-lg w-[250px] z-20 border border-gray-800">
+        <h2
+          className="text-2xl font-semibold mb-2 
+          text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500
+          drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+        >
+          {userStats.username}
+        </h2>
+        <div className="flex gap-4 items-center mt-2">
+          <span className="text-xl font-medium text-white/90">
+            {userStats.total}
+          </span>
+          <span className="text-xl font-light text-gray-400">solved</span>
+        </div>
+        <div className="flex gap-4 mt-3">
+          <div className="text-lg font-medium text-[#00B8A3]">
+            {userStats.easy}
+          </div>
+          <div className="text-lg font-medium text-[#FFC01E]">
+            {userStats.medium}
+          </div>
+          <div className="text-lg font-medium text-[#FF375F]">
+            {userStats.hard}
+          </div>
+        </div>
+      </div>
 
-      <ControlsContainer>
-        <div>
-          <label>Center Force</label>
-          <TimelineSlider
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={centerForce}
-            onChange={(e) => {
-              const value = parseFloat(e.target.value);
-              setCenterForce(value);
-              handleForceChange.centerForce(value);
-            }}
-          />
-        </div>
-        <div>
-          <label>Repel Force</label>
-          <TimelineSlider
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={repelForce}
-            onChange={(e) => {
-              const value = parseFloat(e.target.value);
-              setRepelForce(value);
-              handleForceChange.repelForce(value);
-            }}
-          />
-        </div>
-        <div>
-          <label>Link Force</label>
-          <TimelineSlider
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={linkForce}
-            onChange={(e) => {
-              const value = parseFloat(e.target.value);
-              setLinkForce(value);
-              handleForceChange.linkForce(value);
-            }}
-          />
-        </div>
-        <div>
-          <label>Link Distance</label>
-          <TimelineSlider
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={linkDistance}
-            onChange={(e) => {
-              const value = parseFloat(e.target.value);
-              setLinkDistance(value);
-              handleForceChange.linkDistance(value);
-            }}
-          />
-        </div>
-        <div>
-          <label>Timeline Progress</label>
-          <TimelineSlider
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={timeProgress}
-            onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
-          />
-        </div>
-        <InstructionText>⌘/Ctrl + Click to open problem</InstructionText>
-      </ControlsContainer>
+      <div className="absolute top-40 right-5 bg-gray-900/80 backdrop-blur-lg p-4 rounded-lg w-[250px] z-10 flex flex-col gap-2.5 border border-gray-800">
+        <label className="block text-gray-400 mb-1 text-sm font-mono">
+          Center Force
+        </label>
+        <input
+          type="range"
+          className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+            [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:to-purple-500"
+          min="0"
+          max="1"
+          step="0.1"
+          value={centerForce}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value);
+            setCenterForce(value);
+            handleForceChange.centerForce(value);
+          }}
+        />
+        <label className="block text-gray-400 mb-1 text-sm font-mono">
+          Repel Force
+        </label>
+        <input
+          type="range"
+          className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+            [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:to-purple-500"
+          min="0"
+          max="1"
+          step="0.1"
+          value={repelForce}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value);
+            setRepelForce(value);
+            handleForceChange.repelForce(value);
+          }}
+        />
+        <label className="block text-gray-400 mb-1 text-sm font-mono">
+          Link Force
+        </label>
+        <input
+          type="range"
+          className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+            [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:to-purple-500"
+          min="0"
+          max="1"
+          step="0.1"
+          value={linkForce}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value);
+            setLinkForce(value);
+            handleForceChange.linkForce(value);
+          }}
+        />
+        <label className="block text-gray-400 mb-1 text-sm font-mono">
+          Link Distance
+        </label>
+        <input
+          type="range"
+          className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+            [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:to-purple-500"
+          min="0"
+          max="1"
+          step="0.1"
+          value={linkDistance}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value);
+            setLinkDistance(value);
+            handleForceChange.linkDistance(value);
+          }}
+        />
+        <label className="block text-gray-400 mb-1 text-sm font-mono">
+          Timeline Progress
+        </label>
+        <input
+          type="range"
+          className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+            [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
+            [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-blue-500 
+            [&::-webkit-slider-thumb]:to-purple-500"
+          min="0"
+          max="1"
+          step="0.01"
+          value={timeProgress}
+          onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
+        />
+      </div>
 
-      <SearchContainer show={showSearch}>
-        <SearchInput
+      <div
+        className={`absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-2 
+        bg-gray-900/90 backdrop-blur-lg p-1.5 px-2 rounded-lg shadow-lg z-50 w-[600px]
+        border border-gray-800 ${showSearch ? "flex" : "hidden"}`}
+      >
+        <input
           id="search-input"
-          type="text"
+          className="bg-transparent border-none text-white p-1 text-sm font-mono outline-none w-full
+            placeholder:text-white/40"
           placeholder="Search for a question..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <CloseButton 
-          onClick={() => {
-            setShowSearch(false);
-            setSearchQuery('');
-          }}
-        >
-          ×
-        </CloseButton>
-      </SearchContainer>
+      </div>
 
       <svg
         ref={svgRef}
-        className="absolute inset-0 w-full h-full bg-gray-900 shadow-lg cursor-move rounded-lg"
+        className="absolute inset-0 w-full h-full bg-gray-950 rounded-lg"
       />
+
+      <div className="absolute bottom-4 right-4 text-gray-500 text-sm font-mono">
+        Cmd/Ctrl + Click to open problem
+      </div>
     </div>
   );
 };
