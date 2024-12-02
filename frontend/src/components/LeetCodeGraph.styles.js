@@ -2,18 +2,22 @@ import styled from 'styled-components';
 
 export const ControlsContainer = styled.div`
   position: absolute;
-  top: 140px;
+  top: 160px;
   right: 20px;
-  background: rgba(30, 30, 30, 0.9);
-  padding: 15px 20px;
+  background-color: rgba(26, 26, 26, 0.9);
+  padding: 15px;
   border-radius: 8px;
-  z-index: 50;
-  width: 280px;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 250px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 
-  div {
-    margin-bottom: 12px;
+  label {
+    display: block;
+    color: #888;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
   }
 `;
 
@@ -57,75 +61,55 @@ export const StatsContainer = styled.div`
   position: absolute;
   top: 20px;
   right: 20px;
-  background: rgba(30, 30, 30, 0.9);
-  padding: 15px 20px;
+  background-color: rgba(26, 26, 26, 0.9);
+  padding: 15px;
   border-radius: 8px;
-  z-index: 50;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  width: 280px;
+  width: 250px;
+  z-index: 20;
 `;
 
 export const Username = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #e4e4e4;
+  color: white;
+  font-size: 2rem;
+  font-weight: 500;
+  margin: 0;
+  margin-bottom: 0.5rem;
 `;
 
 export const StatsRow = styled.div`
   display: flex;
+  gap: 1rem;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  margin-top: 0.5rem;
 `;
 
 export const StatValue = styled.span`
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #e4e4e4;
+  font-weight: 500;
+  color: white;
 `;
 
 export const StatLabel = styled.span`
-  font-size: 1rem;
-  color: #888;
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: #9CA3AF;
 `;
 
 export const DifficultyStats = styled.div`
   display: flex;
-  gap: 15px;
-  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
 `;
 
 export const DifficultyItem = styled.div`
-  font-size: 1.1rem;
-  font-weight: 600;
   color: ${props => props.color};
-  display: flex;
-  align-items: center;
-  
-  &:before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: ${props => props.color};
-    margin-right: 6px;
-  }
+  font-size: 1.125rem;
+  font-weight: 500;
 `;
 
 export const InstructionText = styled.div`
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  color: #888;
-  font-size: 1rem;
-  pointer-events: none;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 8px 12px;
-  border-radius: 6px;
-  backdrop-filter: blur(4px);
-  z-index: 50;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #666;
+  font-size: 0.8rem;
+  margin-top: 15px;
+  text-align: center;
 `;

@@ -3,28 +3,26 @@ import styled from 'styled-components';
 
 const TableContainer = styled.div`
   padding: 20px;
-  color: #e4e4e4;
-  width: 100%;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  margin: 20px;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: rgba(30, 30, 30, 0.9);
-  border-radius: 8px;
 `;
 
 const Th = styled.th`
   text-align: left;
-  padding: 12px 16px;
-  border-bottom: 1px solid #404040;
+  padding: 12px;
+  border-bottom: 1px solid #333;
   color: #888;
-  font-weight: 500;
 `;
 
 const Td = styled.td`
-  padding: 12px 16px;
-  border-bottom: 1px solid #404040;
+  padding: 12px;
+  border-bottom: 1px solid #333;
 `;
 
 const ProblemsTable = () => {
@@ -33,22 +31,19 @@ const ProblemsTable = () => {
       <Table>
         <thead>
           <tr>
-            <Th>Status</Th>
             <Th>Title</Th>
             <Th>Difficulty</Th>
             <Th>Category</Th>
-            <Th>Last Solved</Th>
+            <Th>Status</Th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <Td>✅</Td>
-            <Td>Two Sum</Td>
-            <Td style={{ color: '#00B8A3' }}>Easy</Td>
-            <Td>Array</Td>
-            <Td>2024-03-10</Td>
+            <Td>Coming soon...</Td>
+            <Td></Td>
+            <Td></Td>
+            <Td></Td>
           </tr>
-          {/* Add more rows as needed */}
         </tbody>
       </Table>
     </TableContainer>
