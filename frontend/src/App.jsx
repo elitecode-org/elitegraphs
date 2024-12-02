@@ -8,11 +8,10 @@ import {
 } from "@clerk/clerk-react";
 import LandingPage from "./pages/LandingPage";
 import LeetCodeGraph from "./components/LeetCodeGraph";
-import ProblemsSection from "./components/ProblemsSection";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import { UserProvider } from "./context/userContext";
-import Navigation from "./components/Navigation";
+import ProblemList from "./components/Problems/ProblemList";
 
 function App() {
   const clerkPubKey = "pk_test_cmFwaWQtcmhpbm8tMi5jbGVyay5hY2NvdW50cy5kZXYk";
@@ -21,15 +20,14 @@ function App() {
     <UserProvider>
       <ClerkProvider publishableKey={clerkPubKey}>
         <Router>
-          <Navigation />
           <Routes>
             <Route
-              path="/graph"
+              path="/"
               element={
                 <>
                   <SignedIn>
                     <Layout>
-                      <LeetCodeGraph />
+                      <Dashboard />
                     </Layout>
                   </SignedIn>
                   <SignedOut>
@@ -43,16 +41,18 @@ function App() {
               element={
                 <SignedIn>
                   <Layout>
-                    <ProblemsSection />
+                    <ProblemList />
                   </Layout>
                 </SignedIn>
               }
             />
             <Route
-              path="/"
+              path="/graph"
               element={
                 <SignedIn>
-                  <Dashboard />
+                  <Layout>
+                    <LeetCodeGraph />
+                  </Layout>
                 </SignedIn>
               }
             />

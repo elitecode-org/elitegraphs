@@ -22,8 +22,8 @@ export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="grid grid-rows-[1fr_auto] min-h-screen p-8 max-w-4xl mx-auto text-white bg-gray-950 overflow-x-hidden overflow-y-hidden">
-      <main className="flex flex-col gap-12 items-center justify-center text-center">
+    <div className="w-full min-h-screen p-0 m-0 bg-gray-950 overflow-x-hidden">
+      <main className="flex flex-col gap-12 items-center justify-center text-center min-h-screen m-0">
         <motion.div
           className="space-y-6"
           initial={{ opacity: 0, y: 20 }}
@@ -43,7 +43,7 @@ export default function Home() {
             elitecode
           </motion.h1>
           <motion.p
-            className="text-xl text-white font-mono font-bold light max-w-2xl"
+            className="text-xl text-white font-mono font-bold light"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -53,7 +53,7 @@ export default function Home() {
         </motion.div>
 
         <motion.div
-          className="grid sm:grid-cols-3 gap-8 mt-4 px-4"
+          className="grid sm:grid-cols-3 gap-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
@@ -68,10 +68,10 @@ export default function Home() {
             >
               <h2
                 className="text-2xl font-semibold 
-                  text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500
-                  drop-shadow-[0_0_8px_rgba(219,39,119,0.5)]  
-                  [text-shadow:_0_0_15px_rgb(168,85,247,0.5)]
-                  break-words"
+                text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500
+                drop-shadow-[0_0_8px_rgba(219,39,119,0.5)]  
+                [text-shadow:_0_0_15px_rgb(168,85,247,0.5)]
+                break-words"
               >
                 {feature.title}
               </h2>

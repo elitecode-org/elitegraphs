@@ -6,7 +6,25 @@ const UserContext = createContext(undefined);
 
 const initialState = {
   problems: [],
-  stats: null,
+  stats: {
+    totalSolved: 0,
+    totalAttempted: 0,
+    easy: {
+      solved: 0,
+      attempted: 0,
+      total: 0,
+    },
+    medium: {
+      solved: 0,
+      attempted: 0,
+      total: 0,
+    },
+    hard: {
+      solved: 0,
+      attempted: 0,
+      total: 0,
+    },
+  },
   isLoading: true,
   error: null,
   dashboardKey: localStorage.getItem("dashboardKey"),
@@ -48,6 +66,45 @@ export function UserProvider({ children }) {
     return mergedProblems;
   };
 
+  const calculateStats = (problems) => {
+    const stats = {
+      totalSolved: 0,
+      totalAttempted: 0,
+      easy: {
+        solved: 0,
+        attempted: 0,
+        total: 0,
+      },
+      medium: {
+        solved: 0,
+        attempted: 0,
+        total: 0,
+      },
+      hard: {
+        solved: 0,
+        attempted: 0,
+        total: 0,
+      },
+    };
+
+    problems.forEach((problem) => {
+      const difficulty = problem.difficultyLevel.toLowerCase();
+
+      // Increment total for each difficulty
+      stats[difficulty].total++;
+
+      if (problem.status === "accepted") {
+        stats[difficulty].solved++;
+        stats.totalSolved++;
+      } else if (problem.status === "attempted") {
+        stats[difficulty].attempted++;
+        stats.totalAttempted++;
+      }
+    });
+
+    return stats;
+  };
+
   const loadProblems = async () => {
     if (!state.dashboardKey) return;
 
@@ -55,9 +112,10 @@ export function UserProvider({ children }) {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       const data = await userService.getScrapedProblems(state.dashboardKey);
-      const stats = userService.calculateStats(data.problems);
-
       const problemsWithTags = mergeProblemTags(data.problems);
+      console.log(problemsWithTags);
+      // Calculate stats from the merged problems
+      const stats = calculateStats(problemsWithTags);
 
       setState((prev) => ({
         ...prev,
@@ -133,6 +191,19 @@ export function UserProvider({ children }) {
     return Array.from(tagSet);
   };
 
+  const getCompletionRate = (difficulty) => {
+    const stats = state.stats[difficulty.toLowerCase()];
+    return stats.total > 0 ? (stats.solved / stats.total) * 100 : 0;
+  };
+
+  const getTotalCompletionRate = () => {
+    const total =
+      state.stats.easy.total +
+      state.stats.medium.total +
+      state.stats.hard.total;
+    return total > 0 ? (state.stats.totalSolved / total) * 100 : 0;
+  };
+
   const value = {
     ...state,
     validateAndSetDashboardKey,
@@ -144,6 +215,8 @@ export function UserProvider({ children }) {
     getAttemptedProblems,
     getProblemsByTag,
     getAllTags,
+    getCompletionRate,
+    getTotalCompletionRate,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

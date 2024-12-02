@@ -5,7 +5,7 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-950">
       <Navigation />
-      <main className="pl-16">{children}</main>
+      <main className="pl-16 pt-8">{children}</main>
     </div>
   );
 };

@@ -1,96 +1,17 @@
 import React, { useState } from "react";
-import styled from "styled-components";
 import { format } from "date-fns";
-import { categoryColors } from "../constants/leetcodeCategories";
+import { motion } from "framer-motion";
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  background: #1a1a1a;
-  color: #fff;
-`;
-
-const Th = styled.th`
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #333;
-  color: #888;
-  font-weight: 500;
-  font-size: 0.9rem;
-`;
-
-const Td = styled.td`
-  padding: 12px 16px;
-  border-bottom: 1px solid #2a2a2a;
-`;
-
-const TitleLink = styled.a`
-  color: #fff;
-  text-decoration: none;
-  &:hover {
-    color: #4f9fff;
+const formatDate = (dateString) => {
+  if (!dateString) return "Not completed";
+  try {
+    return format(new Date(dateString), "MMM d, yyyy");
+  } catch (error) {
+    return "Invalid date";
   }
-`;
+};
 
-const ExternalLink = styled.a`
-  color: #888;
-  &:hover {
-    color: #fff;
-  }
-`;
-
-const CategoryTag = styled.span`
-  display: inline-block;
-  padding: 2px 8px;
-  margin-right: 4px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  background: ${(props) => props.color}33;
-  color: ${(props) => props.color};
-`;
-
-const CategoryTooltip = styled.div`
-  position: absolute;
-  background: #2a2a2a;
-  padding: 8px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: ${(props) => (props.show ? "block" : "none")};
-`;
-
-const ConfidenceIndicator = styled.div`
-  padding: 4px 8px;
-  border-radius: 4px;
-  display: inline-block;
-  font-size: 0.8rem;
-  background: ${(props) => {
-    switch (props.level) {
-      case "hard":
-        return "#ff375f22";
-      case "normal":
-        return "#ffc01e22";
-      case "easy":
-        return "#00b8a322";
-      default:
-        return "#88888822";
-    }
-  }};
-  color: ${(props) => {
-    switch (props.level) {
-      case "hard":
-        return "#ff375f";
-      case "normal":
-        return "#ffc01e";
-      case "easy":
-        return "#00b8a3";
-      default:
-        return "#888";
-    }
-  }};
-`;
-
-const ProblemsTable = ({ problems }) => {
+function ProblemsTable({ problems }) {
   const [tooltipData, setTooltipData] = useState({
     show: false,
     categories: [],
@@ -98,99 +19,106 @@ const ProblemsTable = ({ problems }) => {
     y: 0,
   });
 
-  const handleCategoryHover = (e, categories) => {
-    setTooltipData({
-      show: true,
-      categories,
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
-
-  const handleCategoryLeave = () => {
-    setTooltipData({ ...tooltipData, show: false });
-  };
-
   const getLeetCodeUrl = (title) => {
     return `https://leetcode.com/problems/${title
       .toLowerCase()
       .replace(/\s+/g, "-")}/`;
   };
 
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty?.toLowerCase()) {
+      case "hard":
+        return "bg-red-400/20 text-red-400";
+      case "medium":
+        return "bg-yellow-400/20 text-yellow-400";
+      case "easy":
+        return "bg-green-400/20 text-green-400";
+      default:
+        return "bg-gray-400/20 text-gray-400";
+    }
+  };
+
+  const headerClasses = `
+    px-6 py-4 text-left text-lg font-medium border-b border-gray-800/30
+    text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500
+    drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]
+    [text-shadow:_0_0_15px_rgb(147,51,234,0.5)]
+  `;
+
   return (
-    <div className="p-8">
-      <Table>
-        <thead>
+    <div className="w-full overflow-x-auto rounded-lg bg-gray-900/50 backdrop-blur-sm">
+      <table className="w-full border-collapse">
+        <thead className="bg-gray-900/30">
           <tr>
-            <Th>Title</Th>
-            <Th>Difficulty</Th>
-            <Th>Last Completed</Th>
-            <Th>Confidence</Th>
-            <Th>Categories</Th>
-            <Th></Th>
+            <th className={headerClasses}>Title</th>
+            <th className={headerClasses}>Difficulty</th>
+            <th className={headerClasses}>Last Completed</th>
+            <th className={headerClasses}>Categories</th>
+            <th className={headerClasses}></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-gray-800/30">
           {problems?.length ? (
             problems.map((problem) => (
-              <tr key={problem.id}>
-                <Td>
-                  <TitleLink
-                    href={getLeetCodeUrl(problem.title)}
+              <motion.tr
+                key={problem.id || problem.problemId}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="group hover:bg-gray-900/30 transition-colors"
+              >
+                <td className="px-6 py-4">
+                  <a
+                    href={getLeetCodeUrl(
+                      problem.title || problem.questionTitle
+                    )}
                     target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white hover:text-purple-400 transition-colors text-base"
                   >
-                    {problem.title}
-                  </TitleLink>
-                </Td>
-                <Td>
+                    {problem.title ||
+                      problem.questionTitle ||
+                      "Untitled Problem"}
+                  </a>
+                </td>
+                <td className="px-6 py-4">
                   <span
-                    style={{
-                      color:
-                        problem.difficulty === "Hard"
-                          ? "#ff375f"
-                          : problem.difficulty === "Medium"
-                          ? "#ffc01e"
-                          : "#00b8a3",
-                    }}
+                    className={`px-2 py-1 rounded-md text-xs ${getDifficultyColor(
+                      problem.difficulty || problem.difficultyLevel
+                    )}`}
                   >
-                    {problem.difficulty}
+                    {problem.difficulty || problem.difficultyLevel || "Unknown"}
                   </span>
-                </Td>
-                <Td>
-                  {format(new Date(problem.lastCompleted), "MMM d, yyyy")}
-                </Td>
-                <Td>
-                  <ConfidenceIndicator level={problem.confidence}>
-                    {problem.confidence}
-                  </ConfidenceIndicator>
-                </Td>
-                <Td>
-                  <div
-                    onMouseEnter={(e) =>
-                      handleCategoryHover(e, problem.categories)
-                    }
-                    onMouseLeave={handleCategoryLeave}
-                  >
-                    {problem.categories.slice(0, 3).map((category, index) => (
-                      <CategoryTag
-                        key={index}
-                        color={categoryColors[category] || "#888"}
-                      >
-                        {category}
-                      </CategoryTag>
-                    ))}
-                    {problem.categories.length > 3 && (
-                      <CategoryTag color="#888">
-                        +{problem.categories.length - 3}
-                      </CategoryTag>
+                </td>
+                <td className="px-6 py-4 text-gray-400">
+                  {formatDate(problem.lastCompleted)}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex flex-wrap gap-1.5">
+                    {(problem.categories || problem.tags || [])
+                      .slice(0, 3)
+                      .map((category, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-0.5 text-xs rounded-md bg-purple-500/20 text-purple-400"
+                        >
+                          {category}
+                        </span>
+                      ))}
+                    {(problem.categories || problem.tags || []).length > 3 && (
+                      <span className="px-2 py-0.5 text-xs rounded-md bg-gray-800 text-gray-400">
+                        +{(problem.categories || problem.tags || []).length - 3}
+                      </span>
                     )}
                   </div>
-                </Td>
-                <Td>
-                  <ExternalLink
-                    href={getLeetCodeUrl(problem.title)}
+                </td>
+                <td className="px-6 py-4">
+                  <a
+                    href={getLeetCodeUrl(
+                      problem.title || problem.questionTitle
+                    )}
                     target="_blank"
-                    title="Open in LeetCode"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-purple-400 transition-colors"
                   >
                     <svg
                       width="16"
@@ -204,91 +132,24 @@ const ProblemsTable = ({ problems }) => {
                       <polyline points="15 3 21 3 21 9" />
                       <line x1="10" y1="14" x2="21" y2="3" />
                     </svg>
-                  </ExternalLink>
-                </Td>
-              </tr>
+                  </a>
+                </td>
+              </motion.tr>
             ))
           ) : (
             <tr>
-              <Td colSpan="6" style={{ textAlign: "center" }}>
+              <td
+                colSpan="5"
+                className="px-4 py-3 text-center text-gray-400 border-b border-gray-800/50"
+              >
                 No problems to display
-              </Td>
+              </td>
             </tr>
           )}
         </tbody>
-      </Table>
-      <CategoryTooltip
-        show={tooltipData.show}
-        style={{
-          top: tooltipData.y + 10,
-          left: tooltipData.x + 10,
-        }}
-      >
-        {tooltipData.categories.map((category, index) => (
-          <CategoryTag key={index} color={categoryColors[category] || "#888"}>
-            {category}
-          </CategoryTag>
-        ))}
-      </CategoryTooltip>
+      </table>
     </div>
   );
-};
-
-ProblemsTable.defaultProps = {
-  problems: [
-    {
-      id: 1,
-      title: "Merge Intervals",
-      difficulty: "Medium",
-      lastCompleted: "2024-03-12T14:30:00Z",
-      confidence: "normal",
-      categories: ["Array", "Sorting", "Intervals"],
-    },
-    {
-      id: 2,
-      title: "LRU Cache",
-      difficulty: "Medium",
-      lastCompleted: "2024-03-11T09:15:00Z",
-      confidence: "hard",
-      categories: ["Hash Table", "Linked List", "Design", "Doubly-Linked List"],
-    },
-    {
-      id: 3,
-      title: "Maximum Subarray",
-      difficulty: "Easy",
-      lastCompleted: "2024-03-10T16:45:00Z",
-      confidence: "easy",
-      categories: ["Array", "Dynamic Programming", "Divide and Conquer"],
-    },
-    {
-      id: 4,
-      title: "Word Break",
-      difficulty: "Medium",
-      lastCompleted: "2024-03-09T11:20:00Z",
-      confidence: "normal",
-      categories: [
-        "Hash Table",
-        "String",
-        "Dynamic Programming",
-        "Trie",
-        "Memoization",
-      ],
-    },
-    {
-      id: 5,
-      title: "Trapping Rain Water",
-      difficulty: "Hard",
-      lastCompleted: "2024-03-08T15:10:00Z",
-      confidence: "hard",
-      categories: [
-        "Array",
-        "Two Pointers",
-        "Dynamic Programming",
-        "Stack",
-        "Monotonic Stack",
-      ],
-    },
-  ],
-};
+}
 
 export default ProblemsTable;

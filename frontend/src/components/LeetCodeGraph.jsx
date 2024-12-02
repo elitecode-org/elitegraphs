@@ -63,8 +63,6 @@ const LeetCodeGraph = () => {
 
   const { problems, stats } = useUser();
 
-  console.log(problems);
-
   // Transform problems into graph data format
   const data = useMemo(() => {
     if (!problems || problems.length === 0) {
@@ -150,9 +148,6 @@ const LeetCodeGraph = () => {
         node.connections = categoryConnections[node.id] || 0;
       }
     });
-
-    console.log("Generated data:", { nodes, links }); // Debug log
-
     return { nodes, links };
   }, [problems]);
 
@@ -631,12 +626,16 @@ const LeetCodeGraph = () => {
     () => ({
       username: stats?.username || "User",
       total: stats?.totalSolved || 0,
-      easy: stats?.easySolved || 0,
-      medium: stats?.mediumSolved || 0,
-      hard: stats?.hardSolved || 0,
+      easy: stats?.easy.solved || 0,
+      medium: stats?.medium.solved || 0,
+      hard: stats?.hard.solved || 0,
     }),
     [stats]
   );
+
+  useEffect(() => {
+    console.log(userStats);
+  }, [userStats]);
 
   // Update the getLeetCodeUrl function
   const getLeetCodeUrl = (problem) => {
@@ -660,13 +659,13 @@ const LeetCodeGraph = () => {
           <span className="text-xl font-light text-gray-400">solved</span>
         </div>
         <div className="flex gap-4 mt-3">
-          <div className="text-lg font-medium text-[#00B8A3]">
+          <div className="text-lg font-medium text-green-500">
             {userStats.easy}
           </div>
-          <div className="text-lg font-medium text-[#FFC01E]">
+          <div className="text-lg font-medium text-yellow-500">
             {userStats.medium}
           </div>
-          <div className="text-lg font-medium text-[#FF375F]">
+          <div className="text-lg font-medium text-red-500">
             {userStats.hard}
           </div>
         </div>

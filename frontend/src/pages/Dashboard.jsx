@@ -20,16 +20,41 @@ function StatsCard({ title, value, total }) {
   );
 }
 
+function RecentProblemCard({ problem }) {
+  return (
+    <motion.div
+      className="p-4 rounded-lg bg-gray-900/50 border border-gray-800 backdrop-blur-lg"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <h3 className="text-lg font-medium text-white">
+        {problem.questionTitle}
+      </h3>
+      <div className="flex justify-between items-center mt-2">
+        <span
+          className={`text-sm ${
+            problem.status === "accepted" ? "text-green-400" : "text-yellow-400"
+          }`}
+        >
+          {problem.status === "accepted" ? "Solved" : "Attempted"}
+        </span>
+        <span className="text-sm text-gray-400">{problem.difficultyLevel}</span>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Dashboard() {
   const {
     stats,
+    problems,
     isLoading,
     error,
     dashboardKey,
     lastUpdated,
     validateAndSetDashboardKey,
     logout,
-    getProblemsByDifficulty,
+    getTotalCompletionRate,
   } = useUser();
 
   const [inputKey, setInputKey] = useState("");
@@ -120,7 +145,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 pl-16 p-8">
+    <div className="min-h-screen bg-gray-950 pr-16 pl-32 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1
@@ -143,23 +168,34 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <StatsCard
             title="Easy Problems"
-            value={stats?.easy || 0}
-            total={getProblemsByDifficulty("Easy").length}
+            value={stats?.easy?.solved || 0}
+            total={stats?.easy?.total || 0}
           />
           <StatsCard
             title="Medium Problems"
-            value={stats?.medium || 0}
-            total={getProblemsByDifficulty("Medium").length}
+            value={stats?.medium?.solved || 0}
+            total={stats?.medium?.total || 0}
           />
           <StatsCard
             title="Hard Problems"
-            value={stats?.hard || 0}
-            total={getProblemsByDifficulty("Hard").length}
+            value={stats?.hard?.solved || 0}
+            total={stats?.hard?.total || 0}
           />
           <StatsCard
-            title="Acceptance Rate"
-            value={stats?.acceptanceRate || "0%"}
+            title="Total Completion"
+            value={`${getTotalCompletionRate().toFixed(1)}%`}
           />
+        </div>
+
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold text-white mb-4">
+            Recent Problems
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {problems.slice(0, 6).map((problem) => (
+              <RecentProblemCard key={problem.problemId} problem={problem} />
+            ))}
+          </div>
         </div>
 
         <div className="text-gray-400 text-sm">
