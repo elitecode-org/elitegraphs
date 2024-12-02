@@ -19,15 +19,15 @@ import {
   DifficultyStats,
   DifficultyItem,
 } from "./LeetCodeGraph.styles";
-import { debounce } from 'lodash';
-import styled from 'styled-components';
+import { debounce } from "lodash";
+import styled from "styled-components";
 
 const InstructionText = styled.div`
   position: absolute;
-  bottom: 10px;
+  bottom: -30px;
   right: 10px;
   color: #666;
-  font-size: 0.8rem;
+  font-size: 1rem;
   pointer-events: none;
 `;
 
@@ -176,7 +176,7 @@ const LeetCodeGraph = () => {
     centerForce: 0.5,
     repelForce: 0.5,
     linkForce: 0.8,
-    linkDistance: 0.5
+    linkDistance: 0.5,
   });
 
   const updateForces = useCallback(() => {
@@ -186,29 +186,31 @@ const LeetCodeGraph = () => {
     const target = targetValuesRef.current;
     let changed = false;
 
-    ['centerForce', 'repelForce', 'linkForce', 'linkDistance'].forEach(param => {
-      const current = simulation.force('center').strength();
-      const diff = target[param] - current;
-      if (Math.abs(diff) > 0.001) {
-        changed = true;
-        const newValue = current + diff * 0.1;
-        
-        switch(param) {
-          case 'centerForce':
-            simulation.force('center').strength(newValue);
-            break;
-          case 'repelForce':
-            simulation.force('charge').strength(-newValue * 400);
-            break;
-          case 'linkForce':
-            simulation.force('link').strength(newValue);
-            break;
-          case 'linkDistance':
-            simulation.force('link').distance(newValue * 100);
-            break;
+    ["centerForce", "repelForce", "linkForce", "linkDistance"].forEach(
+      (param) => {
+        const current = simulation.force("center").strength();
+        const diff = target[param] - current;
+        if (Math.abs(diff) > 0.001) {
+          changed = true;
+          const newValue = current + diff * 0.1;
+
+          switch (param) {
+            case "centerForce":
+              simulation.force("center").strength(newValue);
+              break;
+            case "repelForce":
+              simulation.force("charge").strength(-newValue * 400);
+              break;
+            case "linkForce":
+              simulation.force("link").strength(newValue);
+              break;
+            case "linkDistance":
+              simulation.force("link").distance(newValue * 100);
+              break;
+          }
         }
       }
-    });
+    );
 
     if (changed) {
       simulation.alpha(0.3).restart();
@@ -218,32 +220,35 @@ const LeetCodeGraph = () => {
     }
   }, []);
 
-  const handleForceChange = useMemo(() => ({
-    centerForce: debounce((value) => {
-      targetValuesRef.current.centerForce = value;
-      if (!transitionRef.current) {
-        transitionRef.current = requestAnimationFrame(updateForces);
-      }
-    }, 16),
-    repelForce: debounce((value) => {
-      targetValuesRef.current.repelForce = value;
-      if (!transitionRef.current) {
-        transitionRef.current = requestAnimationFrame(updateForces);
-      }
-    }, 16),
-    linkForce: debounce((value) => {
-      targetValuesRef.current.linkForce = value;
-      if (!transitionRef.current) {
-        transitionRef.current = requestAnimationFrame(updateForces);
-      }
-    }, 16),
-    linkDistance: debounce((value) => {
-      targetValuesRef.current.linkDistance = value;
-      if (!transitionRef.current) {
-        transitionRef.current = requestAnimationFrame(updateForces);
-      }
-    }, 16),
-  }), [updateForces]);
+  const handleForceChange = useMemo(
+    () => ({
+      centerForce: debounce((value) => {
+        targetValuesRef.current.centerForce = value;
+        if (!transitionRef.current) {
+          transitionRef.current = requestAnimationFrame(updateForces);
+        }
+      }, 16),
+      repelForce: debounce((value) => {
+        targetValuesRef.current.repelForce = value;
+        if (!transitionRef.current) {
+          transitionRef.current = requestAnimationFrame(updateForces);
+        }
+      }, 16),
+      linkForce: debounce((value) => {
+        targetValuesRef.current.linkForce = value;
+        if (!transitionRef.current) {
+          transitionRef.current = requestAnimationFrame(updateForces);
+        }
+      }, 16),
+      linkDistance: debounce((value) => {
+        targetValuesRef.current.linkDistance = value;
+        if (!transitionRef.current) {
+          transitionRef.current = requestAnimationFrame(updateForces);
+        }
+      }, 16),
+    }),
+    [updateForces]
+  );
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -254,7 +259,7 @@ const LeetCodeGraph = () => {
     const visibleData = getVisibleData(timeProgress);
 
     const width = 1200;
-    const height = 650;
+    const height = 700;
 
     const getNodeColor = (node) => {
       const firstCategory = node.categories
@@ -392,10 +397,10 @@ const LeetCodeGraph = () => {
         if (event.metaKey || event.ctrlKey) {
           event.preventDefault();
           const url = getLeetCodeUrl(d.name);
-          window.open(url, '_blank');
+          window.open(url, "_blank");
         }
       })
-      .style("cursor", "pointer");  // Change cursor to pointer to indicate clickable
+      .style("cursor", "pointer"); // Change cursor to pointer to indicate clickable
 
     simulationRef.current.tick(30);
 
@@ -455,13 +460,16 @@ const LeetCodeGraph = () => {
   ]);
 
   // Extract user stats from the data
-  const userStats = useMemo(() => ({
-    username: data.user?.username || "yangsteven",
-    total: data.user?.total_problems_completed || 0,
-    easy: data.user?.easy_questions || 0,
-    medium: data.user?.medium_questions || 0,
-    hard: data.user?.hard_questions || 0
-  }), [data]);
+  const userStats = useMemo(
+    () => ({
+      username: data.user?.username || "yangsteven",
+      total: data.user?.total_problems_completed || 0,
+      easy: data.user?.easy_questions || 0,
+      medium: data.user?.medium_questions || 0,
+      hard: data.user?.hard_questions || 0,
+    }),
+    [data]
+  );
 
   // Update the getLeetCodeUrl function
   const getLeetCodeUrl = (problemName) => {
@@ -470,14 +478,14 @@ const LeetCodeGraph = () => {
     const urlName = problemName
       .toLowerCase()
       // First replace spaces with dashes
-      .replace(/\s+/g, '-')
+      .replace(/\s+/g, "-")
       // Then remove any remaining special characters
-      .replace(/[^a-zA-Z0-9-]/g, '');
+      .replace(/[^a-zA-Z0-9-]/g, "");
     return `https://leetcode.com/problems/${urlName}/description/`;
   };
 
   return (
-    <div className="relative w-full h-[800px]">
+    <div className="relative w-full h-full">
       <StatsContainer>
         <Username>{userStats.username}</Username>
         <StatsRow>
@@ -563,9 +571,7 @@ const LeetCodeGraph = () => {
             onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
           />
         </div>
-        <InstructionText>
-          ⌘/Ctrl + Click to open problem
-        </InstructionText>
+        <InstructionText>⌘/Ctrl + Click to open problem</InstructionText>
       </ControlsContainer>
 
       <svg
