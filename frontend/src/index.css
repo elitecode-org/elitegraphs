@@ -52,3 +52,40 @@ code {
   scrollbar-width: thin;
   scrollbar-color: rgba(236, 72, 153, 0.5) rgba(17, 24, 39, 0.7);
 }
+
+/* Add these styles to your global CSS */
+pre[class*="language-"] {
+  background: #1a1a1a !important;
+  padding: 1em;
+  margin: 0;
+  overflow: auto;
+  border-radius: 0.5rem;
+}
+
+code[class*="language-"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.line-numbers .line-numbers-rows {
+  border-right: 1px solid #404040;
+}
+
+/* Optional: Customize token colors */
+.token.comment {
+  color: #6b7280;
+}
+.token.function {
+  color: #93c5fd;
+}
+.token.keyword {
+  color: #c084fc;
+}
+.token.string {
+  color: #86efac;
+}
+.token.number {
+  color: #fca5a5;
+}

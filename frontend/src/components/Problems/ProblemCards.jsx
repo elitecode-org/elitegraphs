@@ -38,6 +38,13 @@ function ProblemCards({ problems, showAll }) {
               {problem.difficulty}
             </span>
             <span className="text-gray-500">•</span>
+            <span className="text-yellow-400">
+              {"★".repeat(problem.confidence || 0)}
+              <span className="text-gray-600">
+                {"★".repeat(5 - (problem.confidence || 0))}
+              </span>
+            </span>
+            <span className="text-gray-500">•</span>
             <span className="text-sm text-gray-400">
               {problem.lastAttempted
                 ? `Last solved ${format(

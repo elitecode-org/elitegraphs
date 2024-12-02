@@ -16,13 +16,18 @@ function ProblemTable({ problems, showAll }) {
       <table className="w-full border-collapse">
         <thead className="bg-gray-900/30">
           <tr>
-            {["Title", "Difficulty", "Last Attempted", "Categories", ""].map(
-              (header) => (
-                <th key={header} className={headerClasses}>
-                  {header}
-                </th>
-              )
-            )}
+            {[
+              "Title",
+              "Difficulty",
+              "Confidence",
+              "Last Attempted",
+              "Categories",
+              "",
+            ].map((header) => (
+              <th key={header} className={headerClasses}>
+                {header}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-800/30">
@@ -59,6 +64,14 @@ function TableRow({ problem }) {
           )}`}
         >
           {problem.difficulty || "Unknown"}
+        </span>
+      </td>
+      <td className="px-6 py-4">
+        <span className="text-yellow-400">
+          {"★".repeat(problem.confidence || 0)}
+          <span className="text-gray-600">
+            {"★".repeat(5 - (problem.confidence || 0))}
+          </span>
         </span>
       </td>
       <td className="px-6 py-4 text-gray-400">

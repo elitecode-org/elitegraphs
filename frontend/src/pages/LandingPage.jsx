@@ -104,7 +104,7 @@ export default function Home() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        <p>© 2024 Lighthouse. All rights reserved.</p>
+        <p>© 2024 elitecode. All rights reserved.</p>
       </motion.footer>
     </div>
   );

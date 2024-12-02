@@ -160,7 +160,10 @@ const LeetCodeGraph = () => {
   const getVisibleData = useCallback(
     (progress) => {
       // Only consider problem nodes for timeline filtering
-      const problemNodes = data.nodes.filter((node) => node.type === "problem");
+      const problemNodes = data.nodes.filter(
+        (node) => node.type === "problem" && node.status === "accepted"
+      );
+
       const dates = problemNodes.map((node) => new Date(node.timestamp));
       const minDate = new Date(Math.min(...dates));
       const maxDate = new Date(Math.max(...dates));
@@ -239,6 +242,63 @@ const LeetCodeGraph = () => {
     },
     [data]
   );
+
+  const getFilteredData = useCallback((data, searchQuery) => {
+    if (!searchQuery) return data;
+
+    const lowercaseQuery = searchQuery.toLowerCase();
+
+    // Filter nodes based on search query
+    const filteredNodes = data.nodes.filter((node) => {
+      if (node.type === "problem") {
+        return node.name.toLowerCase().includes(lowercaseQuery);
+      }
+      // Keep all category nodes initially
+      return node.type === "category";
+    });
+
+    // Get IDs of filtered nodes
+    const filteredNodeIds = new Set(filteredNodes.map((node) => node.id));
+
+    // Filter links to only include connections to/from filtered nodes
+    const filteredLinks = data.links.filter((link) => {
+      const sourceId =
+        typeof link.source === "object" ? link.source.id : link.source;
+      const targetId =
+        typeof link.target === "object" ? link.target.id : link.target;
+
+      if (link.type === "problem-category") {
+        // Keep category links only if the problem node is in filtered set
+        return filteredNodeIds.has(sourceId);
+      }
+      // For problem-problem links, keep only if both nodes are in filtered set
+      return filteredNodeIds.has(sourceId) && filteredNodeIds.has(targetId);
+    });
+
+    // Remove category nodes that have no connections after filtering
+    const connectedNodeIds = new Set();
+    filteredLinks.forEach((link) => {
+      const sourceId =
+        typeof link.source === "object" ? link.source.id : link.source;
+      const targetId =
+        typeof link.target === "object" ? link.target.id : link.target;
+      connectedNodeIds.add(sourceId);
+      connectedNodeIds.add(targetId);
+    });
+
+    const finalNodes = filteredNodes.filter(
+      (node) => node.type === "problem" || connectedNodeIds.has(node.id)
+    );
+
+    // Highlight matched nodes
+    finalNodes.forEach((node) => {
+      if (node.type === "problem") {
+        node.highlighted = node.name.toLowerCase().includes(lowercaseQuery);
+      }
+    });
+
+    return { nodes: finalNodes, links: filteredLinks };
+  }, []);
 
   const transitionRef = useRef(null);
   const targetValuesRef = useRef({
@@ -319,13 +379,33 @@ const LeetCodeGraph = () => {
     [updateForces]
   );
 
+  const resetVisualization = useCallback(() => {
+    if (!svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+
+    // Reset node styling
+    svg
+      .selectAll("circle")
+      .attr("stroke", "none")
+      .attr("stroke-width", 0)
+      .style("filter", (d) => (d.type === "category" ? "url(#glow)" : "none"))
+      .style("opacity", (d) => (d.type === "category" ? 0.9 : 0.7));
+
+    // Reset link styling
+    svg.selectAll("line").attr("stroke-opacity", 0.2).attr("stroke-width", 1);
+  }, []);
+
   useEffect(() => {
     if (!svgRef.current) return;
 
     // Clear any existing SVG content
     d3.select(svgRef.current).selectAll("*").remove();
 
-    const visibleData = getVisibleData(timeProgress);
+    // Get visible data based on timeline
+    const timelineData = getVisibleData(timeProgress);
+    // Then filter based on search
+    const visibleData = getFilteredData(timelineData, searchQuery);
 
     const width = 1200;
     const height = 700;
@@ -417,6 +497,25 @@ const LeetCodeGraph = () => {
     feMerge.append("feMergeNode").attr("in", "coloredBlur2");
     feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
+    // Add a new glow filter specifically for links
+    const linkGlow = defs
+      .append("filter")
+      .attr("id", "linkGlow")
+      .attr("height", "300%")
+      .attr("width", "300%")
+      .attr("x", "-100%")
+      .attr("y", "-100%");
+
+    linkGlow
+      .append("feGaussianBlur")
+      .attr("class", "blur")
+      .attr("stdDeviation", "1")
+      .attr("result", "coloredBlur");
+
+    const linkMerge = linkGlow.append("feMerge");
+    linkMerge.append("feMergeNode").attr("in", "coloredBlur");
+    linkMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
     // Create a group for the zoom container
     const g = svg.append("g");
 
@@ -469,14 +568,14 @@ const LeetCodeGraph = () => {
 
     simulationRef.current.force("link").strength(linkForce);
 
-    // Add links and nodes to the zoom container group instead of directly to the svg
+    // Update the links styling
     const links = g
       .append("g")
       .selectAll("line")
       .data(visibleData.links)
       .join("line")
-      .attr("stroke", "#4B5563")
-      .attr("stroke-opacity", 0.2)
+      .attr("stroke", "#FFFFFF") // Pure white color
+      .attr("stroke-opacity", 0.2) // Increased opacity
       .attr("stroke-width", 1);
 
     const nodeGroups = g
@@ -496,9 +595,17 @@ const LeetCodeGraph = () => {
       .append("circle")
       .attr("r", (d) => getNodeSize(d))
       .attr("fill", (d) => getNodeColor(d))
-      .attr("stroke", "none")
-      .style("filter", (d) => (d.type === "category" ? "url(#glow)" : "none"))
-      .style("opacity", (d) => (d.type === "category" ? 0.9 : 0.7));
+      .attr("stroke", (d) => (d.highlighted ? "#ffffff" : "none"))
+      .attr("stroke-width", (d) => (d.highlighted ? 2 : 0))
+      .style("filter", (d) => {
+        if (d.type === "category") return "url(#glow)";
+        if (d.highlighted) return "url(#glow)";
+        return "none";
+      })
+      .style("opacity", (d) => {
+        if (searchQuery && !d.highlighted && d.type === "problem") return 0.3;
+        return d.type === "category" ? 0.9 : 0.7;
+      });
 
     const nodeTexts = nodeGroups
       .append("text")
@@ -610,6 +717,20 @@ const LeetCodeGraph = () => {
     `;
     document.head.appendChild(style);
 
+    // Update link styling based on connected nodes
+    links
+      .attr("stroke", "#FFFFFF")
+      .attr("stroke-opacity", (d) => {
+        const sourceHighlighted = d.source.highlighted;
+        const targetHighlighted = d.target.highlighted;
+        return sourceHighlighted || targetHighlighted ? 0.4 : 0.1;
+      })
+      .attr("stroke-width", (d) => {
+        const sourceHighlighted = d.source.highlighted;
+        const targetHighlighted = d.target.highlighted;
+        return sourceHighlighted || targetHighlighted ? 1.5 : 1;
+      });
+
     // Clean up the timeout when component updates
     return () => {
       if (simulationRef.current) {
@@ -629,7 +750,9 @@ const LeetCodeGraph = () => {
     linkForce,
     linkDistance,
     timeProgress,
+    searchQuery,
     getVisibleData,
+    getFilteredData,
     categoryColors,
   ]);
 
@@ -637,23 +760,32 @@ const LeetCodeGraph = () => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "f") {
         e.preventDefault();
-        setShowSearch(true);
-        setTimeout(() => {
-          const searchInput = document.getElementById("search-input");
-          if (searchInput) {
-            searchInput.focus();
-          }
-        }, 10);
+        // If search is already shown, close it and clear the search
+        if (showSearch) {
+          setShowSearch(false);
+          setSearchQuery("");
+          resetVisualization();
+        } else {
+          // Otherwise, show the search and focus it
+          setShowSearch(true);
+          setTimeout(() => {
+            const searchInput = document.getElementById("search-input");
+            if (searchInput) {
+              searchInput.focus();
+            }
+          }, 10);
+        }
       }
       if (e.key === "Escape" && showSearch) {
         setShowSearch(false);
         setSearchQuery("");
+        resetVisualization();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showSearch]);
+  }, [showSearch, resetVisualization]);
 
   // Extract user stats from the context
   const userStats = useMemo(

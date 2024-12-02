@@ -22,7 +22,11 @@ function FilterButton({ filters, setFilters }) {
     "Binary Tree",
     "Two Pointers",
   ];
-  const confidenceLevels = ["High", "Medium", "Low"];
+  const confidenceLevels = [
+    { label: "High (4-5★)", value: [4, 5] },
+    { label: "Medium (2-3★)", value: [2, 3] },
+    { label: "Low (0-1★)", value: [0, 1] },
+  ];
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -151,23 +155,32 @@ function FilterButton({ filters, setFilters }) {
               </h3>
               <div className="space-y-2">
                 {confidenceLevels.map((level) => (
-                  <label key={level} className="flex items-center gap-2 group">
+                  <label
+                    key={level.label}
+                    className="flex items-center gap-2 group"
+                  >
                     <input
                       type="checkbox"
-                      checked={filters.confidence.includes(level)}
+                      checked={filters.confidence.some((c) =>
+                        level.value.includes(c)
+                      )}
                       onChange={() => {
                         setFilters((prev) => ({
                           ...prev,
-                          confidence: prev.confidence.includes(level)
-                            ? prev.confidence.filter((c) => c !== level)
-                            : [...prev.confidence, level],
+                          confidence: prev.confidence.some((c) =>
+                            level.value.includes(c)
+                          )
+                            ? prev.confidence.filter(
+                                (c) => !level.value.includes(c)
+                              )
+                            : [...prev.confidence, ...level.value],
                         }));
                       }}
                       className="rounded border-gray-700 text-blue-500 focus:ring-blue-500
                         bg-gray-800/50"
                     />
                     <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
-                      {level}
+                      {level.label}
                     </span>
                   </label>
                 ))}
