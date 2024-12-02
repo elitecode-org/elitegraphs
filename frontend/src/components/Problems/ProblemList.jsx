@@ -22,8 +22,8 @@ function ProblemList() {
   return (
     <div className="w-full space-y-8 px-8 pt-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-          Problems
+        <h2 className="ml-2 text-4xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
+          Problem History
         </h2>
         <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
       </div>

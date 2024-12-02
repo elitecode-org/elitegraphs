@@ -76,7 +76,7 @@ const LeetCodeGraph = () => {
       type: "problem",
       difficulty: problem.difficultyLevel,
       categories: problem.tags || [], // Tags merged from leetcode_tags
-      timestamp: problem.timestamp || new Date(),
+      timestamp: problem.completedAt || new Date(),
       status: problem.status,
       questionLink: problem.questionLink,
     }));
@@ -789,10 +789,6 @@ const LeetCodeGraph = () => {
         ref={svgRef}
         className="absolute inset-0 w-full h-full bg-gray-950 rounded-lg"
       />
-
-      <div className="absolute bottom-4 right-4 text-gray-500 text-sm font-mono">
-        Cmd/Ctrl + Click to open problem
-      </div>
 
       {/* Modal */}
       {modalData && (

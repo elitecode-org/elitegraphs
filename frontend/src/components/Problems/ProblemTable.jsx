@@ -60,8 +60,8 @@ function TableRow({ problem }) {
         </span>
       </td>
       <td className="px-6 py-4 text-gray-400">
-        {problem.lastCompleted
-          ? format(new Date(problem.lastCompleted), "MMM d, yyyy")
+        {problem.completedAt
+          ? format(new Date(problem.completedAt), "MMM d, yyyy")
           : "Not completed"}
       </td>
       <td className="px-6 py-4">

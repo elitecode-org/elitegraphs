@@ -113,7 +113,6 @@ export function UserProvider({ children }) {
 
       const data = await userService.getScrapedProblems(state.dashboardKey);
       const problemsWithTags = mergeProblemTags(data.problems);
-      console.log(problemsWithTags);
       // Calculate stats from the merged problems
       const stats = calculateStats(problemsWithTags);
 

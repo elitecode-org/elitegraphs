@@ -37,9 +37,9 @@ function ProblemCards({ problems }) {
             </span>
             <span className="text-gray-500">•</span>
             <span className="text-sm text-gray-400">
-              {problem.lastCompleted
+              {problem.completedAt
                 ? `Last solved ${format(
-                    new Date(problem.lastCompleted),
+                    new Date(problem.completedAt),
                     "MMM d, yyyy"
                   )}`
                 : "Not solved yet"}
