@@ -2,23 +2,18 @@ import styled from 'styled-components';
 
 export const ControlsContainer = styled.div`
   position: absolute;
-  top: 20px;
+  top: 140px;
   right: 20px;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 15px;
+  background: rgba(30, 30, 30, 0.9);
+  padding: 15px 20px;
   border-radius: 8px;
-  z-index: 10;
-  width: 250px;
+  z-index: 50;
+  width: 280px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
   div {
-    margin-bottom: 10px;
-  }
-
-  label {
-    display: block;
-    color: #fff;
-    font-size: 0.9em;
-    margin-bottom: 4px;
+    margin-bottom: 12px;
   }
 `;
 
@@ -60,60 +55,77 @@ export const TimelineSlider = styled.input`
 
 export const StatsContainer = styled.div`
   position: absolute;
-  top: 1rem;
-  left: 1rem;
-  padding: 1.5rem;
-  background: #1E1E1E;
-  border-radius: 0.75rem;
-  backdrop-filter: blur(4px);
+  top: 20px;
+  right: 20px;
+  background: rgba(30, 30, 30, 0.9);
+  padding: 15px 20px;
+  border-radius: 8px;
   z-index: 50;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 280px;
 `;
 
 export const Username = styled.h2`
-  color: white;
-  font-size: 2rem;
-  font-weight: 500;
-  margin: 0;
-  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #e4e4e4;
 `;
 
 export const StatsRow = styled.div`
   display: flex;
-  gap: 1rem;
   align-items: center;
-  margin-top: 0.5rem;
+  gap: 8px;
+  margin-bottom: 10px;
 `;
 
 export const StatValue = styled.span`
   font-size: 1.25rem;
-  font-weight: 500;
-  color: white;
+  font-weight: 600;
+  color: #e4e4e4;
 `;
 
 export const StatLabel = styled.span`
-  font-size: 1.25rem;
-  font-weight: 300;
-  color: #9CA3AF;
+  font-size: 1rem;
+  color: #888;
 `;
 
 export const DifficultyStats = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-top: 0.75rem;
+  gap: 15px;
+  align-items: center;
 `;
 
 export const DifficultyItem = styled.div`
+  font-size: 1.1rem;
+  font-weight: 600;
   color: ${props => props.color};
-  font-size: 1.125rem;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: ${props => props.color};
+    margin-right: 6px;
+  }
 `;
 
 export const InstructionText = styled.div`
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  color: #666;
-  font-size: 0.8rem;
+  bottom: 20px;
+  left: 20px;
+  color: #888;
+  font-size: 1rem;
   pointer-events: none;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 12px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 `;
