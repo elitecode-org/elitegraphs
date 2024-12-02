@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import styled from 'styled-components';
 import LeetCodeGraph from './components/LeetCodeGraph';
-import ProblemsTable from './components/ProblemsTable';
+import ProblemsSection from './components/ProblemsSection';
 import Navigation from './components/Navigation';
 
 const AppContainer = styled.div`
@@ -19,7 +19,7 @@ const App = () => {
         <Navigation />
         <Routes>
           <Route path="/" element={<LeetCodeGraph />} />
-          <Route path="/problems" element={<ProblemsTable />} />
+          <Route path="/problems" element={<ProblemsSection />} />
         </Routes>
       </AppContainer>
     </Router>
