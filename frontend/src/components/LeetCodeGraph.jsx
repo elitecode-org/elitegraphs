@@ -59,6 +59,7 @@ const LeetCodeGraph = () => {
   const [timeProgress, setTimeProgress] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [modalData, setModalData] = useState(null);
 
   const { problems, stats } = useUser();
 
@@ -503,32 +504,24 @@ const LeetCodeGraph = () => {
             )}\nCmd/Ctrl + Click to open problem`
       );
 
-    nodeGroups
-      .on("click", (event, d) => {
-        if (d.type === "category") {
-          const connectedProblems = visibleData.nodes.filter(
-            (node) =>
-              node.type === "problem" &&
-              node.categories &&
-              node.categories.includes(d.name)
-          );
+    nodeGroups.on("click", (event, d) => {
+      if (d.type === "category") {
+        const connectedProblems = visibleData.nodes.filter(
+          (node) =>
+            node.type === "problem" &&
+            node.categories &&
+            node.categories.includes(d.name)
+        );
 
-          console.log(`Problems in category "${d.name}":`);
-          console.log(connectedProblems);
-          console.table(
-            connectedProblems.map((problem) => ({
-              name: problem.name,
-              difficulty: problem.difficulty,
-              status: problem.status,
-              link: problem.questionLink,
-            }))
-          );
-        } else if (event.metaKey || event.ctrlKey) {
-          event.preventDefault();
-          window.open(d.questionLink, "_blank");
-        }
-      })
-      .style("cursor", "pointer");
+        setModalData({
+          category: d.name,
+          problems: connectedProblems,
+        });
+      } else if (event.metaKey || event.ctrlKey) {
+        event.preventDefault();
+        window.open(d.questionLink, "_blank");
+      }
+    });
 
     simulationRef.current.tick(30);
 
@@ -801,6 +794,102 @@ const LeetCodeGraph = () => {
       <div className="absolute bottom-4 right-4 text-gray-500 text-sm font-mono">
         Cmd/Ctrl + Click to open problem
       </div>
+
+      {/* Modal */}
+      {modalData && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setModalData(null)}
+          />
+          <div className="relative bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h2 className="text-xl font-semibold text-white">
+                {modalData.category}
+              </h2>
+              <button
+                onClick={() => setModalData(null)}
+                className="text-gray-400 hover:text-white"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-8rem)]">
+              <div className="space-y-2">
+                {modalData.problems.map((problem) => (
+                  <div
+                    key={problem.id}
+                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium">{problem.name}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className={`text-sm px-2 py-0.5 rounded ${
+                            problem.difficulty === "Easy"
+                              ? "bg-green-900 text-green-200"
+                              : problem.difficulty === "Medium"
+                              ? "bg-yellow-900 text-yellow-200"
+                              : "bg-red-900 text-red-200"
+                          }`}
+                        >
+                          {problem.difficulty}
+                        </span>
+                        <span
+                          className={`text-sm px-2 py-0.5 rounded ${
+                            problem.status === "accepted"
+                              ? "bg-green-900 text-green-200"
+                              : "bg-blue-900 text-blue-200"
+                          }`}
+                        >
+                          {problem.status === "accepted"
+                            ? "Solved"
+                            : "Attempted"}
+                        </span>
+                      </div>
+                    </div>
+                    <a
+                      href={problem.questionLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-4 p-2 text-gray-400 hover:text-white hover:bg-gray-600 rounded-lg transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
