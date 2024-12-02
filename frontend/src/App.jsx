@@ -12,62 +12,69 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import { UserProvider } from "./context/userContext";
 import ProblemList from "./components/Problems/ProblemList";
+import { useClerkUser } from "./hooks/useClerkUser";
+
+function AuthenticatedApp() {
+  useClerkUser();
+  return (
+    <UserProvider>
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <SignedIn>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </SignedIn>
+                <SignedOut>
+                  <LandingPage />
+                </SignedOut>
+              </>
+            }
+          />
+          <Route
+            path="/problems"
+            element={
+              <SignedIn>
+                <Layout>
+                  <ProblemList />
+                </Layout>
+              </SignedIn>
+            }
+          />
+          <Route
+            path="/graph"
+            element={
+              <SignedIn>
+                <Layout>
+                  <LeetCodeGraph />
+                </Layout>
+              </SignedIn>
+            }
+          />
+          <Route
+            path="/sign-in/*"
+            element={<SignIn routing="path" path="/sign-in" />}
+          />
+          <Route
+            path="/sign-up/*"
+            element={<SignUp routing="path" path="/sign-up" />}
+          />
+        </Routes>
+      </Router>
+    </UserProvider>
+  );
+}
 
 function App() {
   const clerkPubKey = "pk_test_cmFwaWQtcmhpbm8tMi5jbGVyay5hY2NvdW50cy5kZXYk";
-
   return (
-    <UserProvider>
-      <ClerkProvider publishableKey={clerkPubKey}>
-        <Router>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <SignedIn>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </SignedIn>
-                  <SignedOut>
-                    <LandingPage />
-                  </SignedOut>
-                </>
-              }
-            />
-            <Route
-              path="/problems"
-              element={
-                <SignedIn>
-                  <Layout>
-                    <ProblemList />
-                  </Layout>
-                </SignedIn>
-              }
-            />
-            <Route
-              path="/graph"
-              element={
-                <SignedIn>
-                  <Layout>
-                    <LeetCodeGraph />
-                  </Layout>
-                </SignedIn>
-              }
-            />
-            <Route
-              path="/sign-in/*"
-              element={<SignIn routing="path" path="/sign-in" />}
-            />
-            <Route
-              path="/sign-up/*"
-              element={<SignUp routing="path" path="/sign-up" />}
-            />
-          </Routes>
-        </Router>
-      </ClerkProvider>
-    </UserProvider>
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <AuthenticatedApp />
+    </ClerkProvider>
   );
 }
 

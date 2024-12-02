@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "../context/userContext";
+import { useAuth } from "@clerk/clerk-react";
+import createUserService from "../services/userService";
 
 function StatsCard({ title, value, total }) {
   return (
@@ -52,16 +54,18 @@ export default function Dashboard() {
     error,
     dashboardKey,
     lastUpdated,
-    validateAndSetDashboardKey,
     logout,
     getTotalCompletionRate,
   } = useUser();
+
+  const { getToken, isSignedIn } = useAuth();
+  const userService = createUserService({ getToken, isSignedIn });
 
   const [inputKey, setInputKey] = useState("");
 
   const handleSubmitKey = async (e) => {
     e.preventDefault();
-    await validateAndSetDashboardKey(inputKey);
+    await userService.syncScrapedProblems(inputKey);
   };
 
   if (!dashboardKey) {

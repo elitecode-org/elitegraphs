@@ -6,6 +6,25 @@ class UserService {
     this.baseUrl = "";
   }
 
+  async createUser(user) {
+    try {
+      console.log(user);
+      await this.api.post(`${this.baseUrl}/users`, user);
+    } catch (error) {
+      throw new Error("Failed to create user");
+    }
+  }
+
+  async syncScrapedProblems(dashboardKey) {
+    try {
+      await this.api.post(`${this.baseUrl}/users/sync-scraped/`, {
+        dashboard_key: dashboardKey,
+      });
+    } catch (error) {
+      throw new Error("Failed to sync scraped problems");
+    }
+  }
+
   async getScrapedProblems(dashboardKey) {
     try {
       const response = await this.api.get(
