@@ -549,7 +549,26 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="text-gray-400 text-sm">
+        <div className="mt-12">
+          <h2
+            className="text-2xl font-semibold text-transparent bg-clip-text 
+    bg-gradient-to-r from-blue-500 to-purple-500
+    drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]
+    mb-4"
+          >
+            Mastered Problems
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {problems
+              .filter((problem) => calculateReviewScore(problem) < 1)
+              .sort((a, b) => calculateReviewScore(a) - calculateReviewScore(b))
+              .map((problem) => (
+                <RecentProblemCard key={problem.problemId} problem={problem} />
+              ))}
+          </div>
+        </div>
+
+        <div className="text-gray-400 text-sm mt-8">
           Last updated: {new Date().toLocaleString()}
         </div>
       </div>

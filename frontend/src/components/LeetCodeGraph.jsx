@@ -537,7 +537,7 @@ const LeetCodeGraph = () => {
 
     simulationRef.current = d3
       .forceSimulation(visibleData.nodes)
-      .alphaDecay(0.1)
+      .alphaDecay(0.01)
       .alphaMin(0.001)
       .velocityDecay(0.3)
       .force(
@@ -545,26 +545,61 @@ const LeetCodeGraph = () => {
         d3
           .forceLink(visibleData.links)
           .id((d) => d.id)
-          .distance(linkDistance * 100)
+          .distance((d) => {
+            // Increase distance between nodes based on their types
+            if (d.type === "problem-problem") return linkDistance * 150;
+            return linkDistance * 200; // Larger distance for problem-category links
+          })
       )
       .force(
         "charge",
         d3
           .forceManyBody()
-          .strength(-repelForce * 400)
+          .strength((d) => {
+            // Stronger repulsion for category nodes
+            if (d.type === "category") return -repelForce * 800;
+            return -repelForce * 600;
+          })
           .theta(0.9)
-          .distanceMin(1)
-          .distanceMax(width / 2)
+          .distanceMin(10) // Increase minimum distance
+          .distanceMax(width) // Allow repulsion to work across the entire width
       )
-      .force("center", d3.forceCenter(0, 0).strength(centerForce))
+      .force(
+        "center",
+        d3.forceCenter(0, 0).strength(centerForce * 0.5) // Reduce center force
+      )
       .force(
         "collision",
         d3
           .forceCollide()
-          .radius((d) => sizeScale(d.connections) + 5)
-          .strength(0.7)
-          .iterations(1)
-      );
+          .radius((d) => {
+            // Increase collision radius
+            if (d.type === "category") return getNodeSize(d) * 3;
+            return getNodeSize(d) * 4;
+          })
+          .strength(0.9) // Increase collision strength
+          .iterations(2) // More iterations for better collision detection
+      )
+      .force("x", d3.forceX().strength(0.1)) // Add x-axis spreading force
+      .force("y", d3.forceY().strength(0.1)); // Add y-axis spreading force
+
+    // Optionally, add these helper forces to prevent clustering
+    simulationRef.current
+      .force(
+        "radial",
+        d3
+          .forceRadial(
+            (d) => (d.type === "category" ? 200 : 100),
+            width / 2,
+            height / 2
+          )
+          .strength(0.1)
+      )
+      .force("forceX", d3.forceX(width / 2).strength(0.05))
+      .force("forceY", d3.forceY(height / 2).strength(0.05));
+
+    // Increase initial simulation ticks for better initial layout
+    simulationRef.current.tick(100);
 
     simulationRef.current.force("link").strength(linkForce);
 
