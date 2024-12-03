@@ -1,11 +1,16 @@
 import { createApiClient } from "./axiosPreset";
 
+// TODO ENV for URLs
 class UserService {
   constructor(api) {
     this.api = api;
     this.baseUrl = "";
   }
 
+  /**
+   * Creates a user in the database
+   * @param {Object} user - The user object
+   */
   async createUser(user) {
     try {
       console.log(user);
@@ -15,6 +20,10 @@ class UserService {
     }
   }
 
+  /**
+   * Syncs scraped problems with the user
+   * @param {string} dashboardKey - The dashboard key
+   */
   async syncScrapedProblems(dashboardKey) {
     try {
       await this.api.post(`${this.baseUrl}/users/sync-scraped/`, {
@@ -25,6 +34,9 @@ class UserService {
     }
   }
 
+  /**
+   * Gets a user from the database
+   */
   async getUser() {
     try {
       const response = await this.api.get(`${this.baseUrl}/users`);
@@ -34,12 +46,25 @@ class UserService {
     }
   }
 
+  /**
+   * Validates a dashboard key
+   */
   async validateDashboardKey() {
     try {
       await this.getUser(localStorage.getItem("clerkId"));
       return true;
     } catch (error) {
       return false;
+    }
+  }
+
+  async updateDashboardKey(dashboardKey) {
+    try {
+      await this.api.put(`${this.baseUrl}/users`, {
+        dashboard_key: dashboardKey,
+      });
+    } catch (error) {
+      throw new Error("Failed to update dashboard key");
     }
   }
 

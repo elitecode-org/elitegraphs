@@ -6,6 +6,8 @@ import { useUser } from "../context/userContext";
 import { getDifficultyColor } from "../components/Problems/utils";
 import CodeReviewModal from "../components/Problems/CodeReviewModal";
 import { useNavigate } from "react-router-dom";
+import DashboardKeyModal from "../components/Dashboard/DashboardKeyModal";
+import { EyeIcon } from "@heroicons/react/24/outline";
 
 function calculateReviewScore(problem) {
   const daysSinceAttempt = Math.floor(
@@ -179,6 +181,7 @@ export default function Dashboard() {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
 
   useEffect(() => {
     console.log(problems);
@@ -249,6 +252,12 @@ export default function Dashboard() {
 
   // Get unique categories from problems
   const categories = ["all", ...new Set(problems.flatMap((p) => p.tags || []))];
+
+  const handleGenerateNewKey = async (newKey) => {
+    setDashboardKey(newKey);
+    localStorage.setItem("dashboardKey", newKey);
+    await userService.updateDashboardKey(newKey);
+  };
 
   if (isLoading) {
     return (
@@ -376,6 +385,16 @@ export default function Dashboard() {
                 text-gray-200 hover:bg-gray-800/50 transition-colors"
             >
               Logout
+            </button>
+
+            <button
+              onClick={() => setIsKeyModalOpen(true)}
+              className="px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-800 
+                text-gray-200 hover:bg-gray-800/50 transition-colors
+                flex items-center gap-2"
+            >
+              <EyeIcon className="w-4 h-4" />
+              Key
             </button>
           </div>
         </div>
@@ -572,6 +591,13 @@ export default function Dashboard() {
           Last updated: {new Date().toLocaleString()}
         </div>
       </div>
+
+      <DashboardKeyModal
+        isOpen={isKeyModalOpen}
+        onClose={() => setIsKeyModalOpen(false)}
+        dashboardKey={dashboardKey}
+        onGenerateNewKey={handleGenerateNewKey}
+      />
     </div>
   );
 }
