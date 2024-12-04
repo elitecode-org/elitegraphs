@@ -68,10 +68,16 @@ function TableRow({ problem }) {
       </td>
       <td className="px-6 py-4">
         <span className="text-yellow-400">
-          {"★".repeat(problem.confidence || 0)}
-          <span className="text-gray-600">
-            {"★".repeat(5 - (problem.confidence || 0))}
-          </span>
+          {problem.confidence === -1 ? (
+            <span className="text-gray-500 text-sm italic">Not rated</span>
+          ) : (
+            <>
+              {"★".repeat(problem.confidence || 0)}
+              <span className="text-gray-600">
+                {"★".repeat(5 - (problem.confidence || 0))}
+              </span>
+            </>
+          )}
         </span>
       </td>
       <td className="px-6 py-4 text-gray-400">

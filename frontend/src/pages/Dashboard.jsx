@@ -18,12 +18,19 @@ function calculateReviewScore(problem) {
   // Higher score means more urgent to review
   // Exponentially increase weight for older problems
   const timeScore =
-    daysSinceAttempt <= 7 ? daysSinceAttempt : Math.pow(daysSinceAttempt, 1.2); // Use exponential growth for older problems
+    daysSinceAttempt <= 7 ? daysSinceAttempt : Math.pow(daysSinceAttempt, 1.2);
 
   // Confidence has less impact than time
   const confidenceWeight = (5 - confidenceScore) * 2;
 
   return timeScore + confidenceWeight;
+}
+
+function isProblemMastered(problem) {
+  const fiveStarSubmissions = problem.submissions?.filter(
+    (submission) => submission.confidence === 5
+  );
+  return problem.confidence === 5 && fiveStarSubmissions?.length >= 2;
 }
 
 function getProblemId(problem) {
@@ -76,16 +83,6 @@ function RecentProblemCard({ problem }) {
         animate={{ opacity: 1, y: 0 }}
         onClick={handleCardClick}
       >
-        {problem.submissions?.length > 0 && (
-          <div
-            className="absolute -top-2 -right-2 w-4 h-4 rounded-full 
-            bg-blue-500/20 border border-blue-500/30
-            flex items-center justify-center"
-          >
-            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-          </div>
-        )}
-
         <div>
           <h3 className="text-lg font-medium text-white line-clamp-1">
             {problem.questionTitle}
@@ -102,10 +99,18 @@ function RecentProblemCard({ problem }) {
             </span>
             <div className="flex items-center gap-2">
               <span className="text-yellow-400">
-                {"★".repeat(problem.confidence || 0)}
-                <span className="text-gray-600">
-                  {"★".repeat(5 - (problem.confidence || 0))}
-                </span>
+                {problem.confidence === -1 ? (
+                  <span className="text-gray-500 text-sm italic">
+                    Not rated
+                  </span>
+                ) : (
+                  <>
+                    {"★".repeat(problem.confidence || 0)}
+                    <span className="text-gray-600">
+                      {"★".repeat(5 - (problem.confidence || 0))}
+                    </span>
+                  </>
+                )}
               </span>
               <span
                 className={`text-sm text-gray-400 ${getDifficultyColor(
@@ -117,6 +122,21 @@ function RecentProblemCard({ problem }) {
             </div>
           </div>
         </div>
+
+        {problem.submissions?.length > 0 && (
+          <div className="absolute -bottom-2 -right-2 w-5 h-5">
+            <div className="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-pulse"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-3 h-3 text-blue-400"
+                fill="currentColor"
+              >
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+              </svg>
+            </div>
+          </div>
+        )}
 
         {problem.submissions?.length > 0 && (
           <button
@@ -149,8 +169,19 @@ function RecentProblemCard({ problem }) {
   );
 }
 
-function getScoreStyle(score) {
-  if (score > 1000) {
+function getScoreStyle(score, problem) {
+  // Check if problem has 5-star confidence and recent attempt
+  const daysSinceAttempt = Math.floor(
+    (new Date() - new Date(problem.lastAttempted)) / (1000 * 60 * 60 * 24)
+  );
+  const isRecentFiveStar = problem.confidence === 5 && daysSinceAttempt < 30;
+
+  if (isRecentFiveStar) {
+    return {
+      text: "✓",
+      classes: "bg-green-500/20 text-green-400 border-green-500/30",
+    };
+  } else if (score > 1000) {
     return {
       text: "!!!",
       classes: "bg-red-500/20 text-red-400 border-red-500/30",
@@ -223,6 +254,12 @@ export default function Dashboard() {
 
   const problemsToReview = problems
     .filter((problem) => {
+      // Skip problems that haven't been rated
+      if (problem.confidence === -1) return false;
+
+      // Skip mastered problems
+      if (isProblemMastered(problem)) return false;
+
       // Filter by difficulty
       if (
         filterDifficulty !== "all" &&
@@ -231,7 +268,7 @@ export default function Dashboard() {
         return false;
       }
 
-      // Filter by category/tag (assuming problems have a category/tag field)
+      // Filter by category/tag
       if (filterCategory !== "all" && !problem.tags?.includes(filterCategory)) {
         return false;
       }
@@ -424,8 +461,10 @@ export default function Dashboard() {
           <StatsCard
             title="Avg Confidence"
             value={`${(
-              problems.reduce((acc, p) => acc + (p.confidence || 0), 0) /
-              problems.length
+              problems.reduce(
+                (acc, p) => acc + (p.confidence === -1 ? 0 : p.confidence),
+                0
+              ) / problems.filter((p) => p.confidence !== -1).length
             ).toFixed(1)}★`}
           />
         </div>
@@ -531,10 +570,14 @@ export default function Dashboard() {
                     className={`absolute -top-2 -right-2 w-8 h-8 rounded-full 
                     flex items-center justify-center text-sm font-medium
                     z-10 border ${
-                      getScoreStyle(Math.round(problem.reviewScore)).classes
+                      getScoreStyle(Math.round(problem.reviewScore), problem)
+                        .classes
                     }`}
                   >
-                    {getScoreStyle(Math.round(problem.reviewScore)).text}
+                    {
+                      getScoreStyle(Math.round(problem.reviewScore), problem)
+                        .text
+                    }
                   </div>
                   <RecentProblemCard problem={problem} />
                 </motion.div>
@@ -548,14 +591,93 @@ export default function Dashboard() {
         </div>
 
         <div className="mt-12">
-          <h2
-            className="text-2xl font-semibold text-transparent bg-clip-text 
-            bg-gradient-to-r from-blue-500 to-purple-500
-            drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]
-            mb-4"
-          >
-            Recent Problems
-          </h2>
+          <div className="flex flex-col space-y-4 mb-6">
+            <h2
+              className="text-2xl font-semibold text-transparent bg-clip-text 
+              bg-gradient-to-r from-blue-500 to-purple-500
+              drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+            >
+              Recent Problems
+            </h2>
+
+            <div className="flex flex-wrap gap-4">
+              {/* Difficulty Filter */}
+              <select
+                value={filterDifficulty}
+                onChange={(e) => setFilterDifficulty(e.target.value)}
+                className="relative px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-800 
+                  text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                  backdrop-blur-lg hover:bg-gray-800/50 transition-all
+                  appearance-none cursor-pointer pr-10
+                  bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTQgNmw0IDQgNC00IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+')] 
+                  bg-[position:right_12px_center] bg-no-repeat"
+              >
+                <option value="all">All Difficulties</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+
+              {/* Category Filter */}
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="relative px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-800 
+                  text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                  backdrop-blur-lg hover:bg-gray-800/50 transition-all
+                  appearance-none cursor-pointer pr-10
+                  bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTQgNmw0IDQgNC00IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+')] 
+                  bg-[position:right_12px_center] bg-no-repeat"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="relative px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-800 
+                  text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                  backdrop-blur-lg hover:bg-gray-800/50 transition-all
+                  appearance-none cursor-pointer pr-10
+                  bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTQgNmw0IDQgNC00IiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+')] 
+                  bg-[position:right_12px_center] bg-no-repeat"
+              >
+                <option value="all">All Status</option>
+                <option value="accepted">Solved</option>
+                <option value="attempted">Attempted</option>
+              </select>
+
+              {/* Reset Filters Button */}
+              <button
+                onClick={() => {
+                  setFilterDifficulty("all");
+                  setFilterCategory("all");
+                  setFilterStatus("all");
+                }}
+                className="relative inline-flex h-10 overflow-hidden rounded-lg p-[1px] 
+                  focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 
+                  focus:ring-offset-slate-50"
+              >
+                <span
+                  className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] 
+                  bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]"
+                />
+                <span
+                  className="inline-flex h-full w-full cursor-pointer items-center 
+                  justify-center rounded-lg bg-slate-950 px-4 py-1 text-sm font-medium 
+                  text-white backdrop-blur-3xl"
+                >
+                  Reset Filters
+                </span>
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {problems
               .sort(

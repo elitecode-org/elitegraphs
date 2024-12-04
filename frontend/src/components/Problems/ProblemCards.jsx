@@ -39,10 +39,16 @@ function ProblemCards({ problems, showAll }) {
             </span>
             <span className="text-gray-500">•</span>
             <span className="text-yellow-400">
-              {"★".repeat(problem.confidence || 0)}
-              <span className="text-gray-600">
-                {"★".repeat(5 - (problem.confidence || 0))}
-              </span>
+              {problem.confidence === -1 ? (
+                <span className="text-gray-500 text-sm italic">Not rated</span>
+              ) : (
+                <>
+                  {"★".repeat(problem.confidence || 0)}
+                  <span className="text-gray-600">
+                    {"★".repeat(5 - (problem.confidence || 0))}
+                  </span>
+                </>
+              )}
             </span>
             <span className="text-gray-500">•</span>
             <span className="text-sm text-gray-400">

@@ -5,4 +5,10 @@ export default {
     extend: {},
   },
   plugins: [require("@tailwindcss/typography")],
+  safelist: [
+    "bg-yellow-500/20",
+    "bg-orange-500/20",
+    "bg-red-500/20",
+    // Add any other severity colors you might use
+  ],
 };

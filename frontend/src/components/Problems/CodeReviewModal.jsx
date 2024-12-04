@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Prism from "prismjs";
@@ -18,10 +18,11 @@ function CodeReviewModal({
   problemTitle,
   language = "python",
 }) {
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState([]);
   const [loading, setLoading] = useState(false);
   const { getToken, isSignedIn } = useAuth();
   const feedbackService = createFeedbackService({ getToken, isSignedIn });
+  const dashboardKey = localStorage.getItem("dashboardKey");
 
   // Syntax highlighting from Prism
   useEffect(() => {
@@ -30,21 +31,67 @@ function CodeReviewModal({
     }
   }, [isOpen, code]);
 
+  useEffect(() => {
+    console.log(code.split("\n"));
+  }, [code]);
+
   const handleGetReview = async () => {
     try {
       setLoading(true);
-      const response = await feedbackService.getFeedback(problemTitle, code);
-      const cleanFeedback = response.feedback
-        .replace(/^```[\s\S]*?```$/gm, "")
-        .replace(/^#+\s*/gm, "")
-        .trim();
-      setFeedback(cleanFeedback);
+      const response = await feedbackService.getFeedback(
+        problemTitle,
+        code,
+        dashboardKey
+      );
+      setFeedback([...response]);
     } catch (error) {
       console.error("Failed to get review:", error);
       setFeedback("Error getting review. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const wrapCodeWithFeedback = (code, feedback) => {
+    const lines = code.split("\n");
+    console.log("Feedback:", feedback);
+    console.log("Number of code lines:", lines.length);
+
+    return lines.map((line, index) => {
+      const feedbackForLine = feedback.find((f) => {
+        return Number(f.lineNumber) === index + 1;
+      });
+
+      console.log(`Line ${index + 1}:`, feedbackForLine);
+
+      return (
+        <div
+          key={index}
+          className={`relative group hover:bg-gray-800/30 ${
+            feedbackForLine?.severity === "yellow"
+              ? "bg-yellow-900/20"
+              : feedbackForLine?.severity === "red"
+              ? "bg-red-900/20"
+              : feedbackForLine?.severity === "green"
+              ? "bg-green-900/20"
+              : feedbackForLine?.severity === "orange"
+              ? "bg-orange-900/20"
+              : ""
+          }`}
+        >
+          <span>{line}</span>
+          {feedbackForLine && (
+            <div
+              className="invisible group-hover:visible absolute 
+              bg-gray-800 text-white p-2 rounded shadow-lg z-[9999] max-w-xs 
+              whitespace-normal top-full left-0 mt-1"
+            >
+              {feedbackForLine.message}
+            </div>
+          )}
+        </div>
+      );
+    });
   };
 
   if (!isOpen) return null;
@@ -96,20 +143,28 @@ function CodeReviewModal({
         </div>
 
         <div className="p-4 overflow-y-auto max-h-[calc(80vh-4rem)]">
-          <pre className="bg-gray-950 p-4 rounded-lg overflow-x-auto">
-            <code className={`language-${language}`}>{code}</code>
+          <pre className="bg-gray-950 p-4 rounded-lg overflow-x-auto relative">
+            <code className={`language-${language}`}>
+              {feedback.length > 0
+                ? wrapCodeWithFeedback(code, feedback)
+                : code}
+            </code>
           </pre>
 
-          {feedback && (
+          {/* {feedback.length > 0 && (
             <div className="mt-4 bg-gray-800 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-white mb-2">
                 Code Review Feedback
               </h3>
               <div className="text-gray-300 prose prose-invert max-w-none">
-                <ReactMarkdown>{feedback}</ReactMarkdown>
+                <ReactMarkdown>
+                  {feedback
+                    .map((f) => `- Line ${f.lineNumber}: ${f.message}`)
+                    .join("\n")}
+                </ReactMarkdown>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </motion.div>
     </motion.div>

@@ -6,14 +6,19 @@ class FeedbackService {
     this.baseUrl = "";
   }
 
-  async getFeedback(code, problemTitle) {
+  async getFeedback(problemTitle, code, dashboardKey) {
     try {
       console.log(code, problemTitle);
       const response = await this.api.post(
-        `${this.baseUrl}/problems/feedback`,
+        `${this.baseUrl}/genai/structured-feedback`,
         {
           problemTitle,
           code,
+        },
+        {
+          headers: {
+            "x-dashboard-key": dashboardKey,
+          },
         }
       );
       console.log(response.data);
