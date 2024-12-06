@@ -2,6 +2,9 @@ import { useEffect } from "react";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import createUserService from "../services/userService";
 
+/**
+ * @deprecated
+ */
 export const useClerkUser = () => {
   const { user, isLoaded } = useUser();
   const { getToken, isSignedIn } = useAuth();

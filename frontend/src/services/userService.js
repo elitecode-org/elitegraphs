@@ -13,7 +13,6 @@ class UserService {
    */
   async createUser(user) {
     try {
-      console.log(user);
       await this.api.post(`${this.baseUrl}/users`, user);
     } catch (error) {
       throw new Error("Failed to create user");
@@ -24,9 +23,13 @@ class UserService {
    * Syncs scraped problems with the user
    * @param {string} dashboardKey - The dashboard key
    */
-  async syncScrapedProblems(dashboardKey) {
+  async syncScrapedProblems(dashboardKey, clerkId, email, name, username) {
     try {
       await this.api.post(`${this.baseUrl}/users/sync-scraped/`, {
+        clerkId: clerkId,
+        email: email || "",
+        name: name || "",
+        username: username || "",
         dashboard_key: dashboardKey,
       });
     } catch (error) {

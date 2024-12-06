@@ -31,10 +31,6 @@ function CodeReviewModal({
     }
   }, [isOpen, code]);
 
-  useEffect(() => {
-    console.log(code.split("\n"));
-  }, [code]);
-
   const handleGetReview = async () => {
     try {
       setLoading(true);

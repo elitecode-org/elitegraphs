@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import * as d3 from "d3";
 import { debounce } from "lodash";
-import { useUser } from "../context/userContext";
+import { useAppUser } from "../context/userContext";
 
 const categoryColors = {
   Array: "#FF3366",
@@ -56,12 +56,12 @@ const LeetCodeGraph = () => {
   const [repelForce, setRepelForce] = useState(0.5);
   const [linkForce, setLinkForce] = useState(0.8);
   const [linkDistance, setLinkDistance] = useState(0.5);
-  const [timeProgress, setTimeProgress] = useState(0);
+  const [timeProgress, setTimeProgress] = useState(1);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [modalData, setModalData] = useState(null);
 
-  const { problems, stats } = useUser();
+  const { problems, stats } = useAppUser();
 
   // Transform problems into graph data format
   const data = useMemo(() => {

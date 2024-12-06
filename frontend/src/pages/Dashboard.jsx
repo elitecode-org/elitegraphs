@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import createUserService from "../services/userService";
-import { useUser } from "../context/userContext";
+import { useAppUser } from "../context/userContext";
 import { getDifficultyColor } from "../components/Problems/utils";
 import CodeReviewModal from "../components/Problems/CodeReviewModal";
 import { useNavigate } from "react-router-dom";
@@ -200,8 +200,9 @@ function getScoreStyle(score, problem) {
 }
 
 export default function Dashboard() {
-  const { problems, stats, isLoading } = useUser();
+  const { problems, stats, isLoading, refetchUserData } = useAppUser();
   const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
   const userService = createUserService({ getToken, isSignedIn });
   const [inputKey, setInputKey] = useState("");
   const [error, setError] = useState(null);
@@ -214,19 +215,19 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
 
-  useEffect(() => {
-    console.log(problems);
-  }, [problems]);
-
-  const { refetchUserData } = useUser();
-
   const handleSubmitKey = async (e) => {
     e.preventDefault();
     try {
       setError(null);
 
       // Sync the scraped problems first
-      await userService.syncScrapedProblems(inputKey);
+      await userService.syncScrapedProblems(
+        inputKey,
+        user.id,
+        user.primaryEmailAddress?.emailAddress,
+        user.fullName,
+        user.username
+      );
 
       // Refetch user data to update the dashboard
       await refetchUserData();

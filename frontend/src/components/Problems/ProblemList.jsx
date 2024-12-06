@@ -3,7 +3,7 @@ import ProblemTable from "./ProblemTable";
 import ProblemCards from "./ProblemCards";
 import ViewToggle from "./ViewToggle";
 import FilterButton from "./FilterButton";
-import { useUser } from "../../context/userContext";
+import { useAppUser } from "../../context/userContext";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 function ProblemList() {
@@ -15,7 +15,7 @@ function ProblemList() {
     categories: [],
     confidence: [], // 'high', 'medium', 'low'
   });
-  const { problems, isLoading } = useUser();
+  const { problems, isLoading } = useAppUser();
 
   const filteredProblems = problems.filter((problem) => {
     const difficultyMatch =
